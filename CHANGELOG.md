@@ -1,9 +1,8 @@
 # Changelog
 
-## 0.1.0 · 2026-10-31 · local release candidate
+## 0.1.0 · 2026-11-01 · public prototype
 
-Prepared locally for review. Repository and Pages publication are pending; this is not a published
-release. The candidate contains:
+Initial public prototype. The repository and browser demos are available. The prototype contains:
 
 - Hash-chained receipts of eight fields without personal identifiers (`docs/FORMATO-v1.md` §1).
 - Ingest endpoint `POST /receipts` with a closed-schema quarantine, version-style labels only,

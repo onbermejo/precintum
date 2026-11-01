@@ -12,6 +12,12 @@ the verifications occurred or that everything was recorded.
 
 **Status:** prototype. Working code and tests; no deployments or users yet.
 
+**Maintainer:** [onbermejo](https://github.com/onbermejo).
+
+**Browser demos:** [evidence verifier](https://onbermejo.github.io/precintum/web/verificador.html),
+[interactive walkthrough](https://onbermejo.github.io/precintum/web/caso-nora.html),
+[operations panel demo](https://onbermejo.github.io/precintum/web/panel-demo.html).
+
 **Start here: [REVIEWERS.md](REVIEWERS.md)** for a short browser walkthrough and local checks with Node.
 
 ## Requirements

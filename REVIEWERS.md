@@ -4,11 +4,12 @@ Precintum is a **prototype**: working code and tests, no deployments or users ye
 short browser walkthrough and local checks, and tells you where each idea lives in the code. The
 local checks take longer on machines with limited resources.
 
-Publication is pending. The walkthrough below uses the files in the local copy.
+The prototype is public. The walkthrough works online or with files from a local copy.
 
 ## Browser walkthrough, nothing to install
 
-1. From the local copy, open **[web/verificador.html](web/verificador.html)** in a browser.
+1. Open the **[browser verifier](https://onbermejo.github.io/precintum/web/verificador.html)**.
+   For offline use, open `web/verificador.html` from a local copy in a browser.
    It is a single HTML file with its own cryptography; nothing leaves your browser.
 2. Click **Load example package**. All eight integrity checks pass, including reading the time-stamp
    token and the Bitcoin anchor file. **What this tool cannot verify** explains that authenticating
