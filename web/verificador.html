@@ -1,0 +1,1742 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-GBd253mkvcdQqdciogYxx0qVc0Wfls3oq8U3YLlUguo=' 'sha256-XWm1QgWQWQ70u6pZvpECSJQ/hTCCOh59GenT76eiflU=' 'sha256-5bxm65XRZvkbIw5gA6XuHHTzfnTza2YR6RhTczIpZ3k=' 'sha256-2mzGKeORNGR5V3EJ6TeOc07msK9TxxyHBxuBRjdjgRg='; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Precintum Evidence Verifier</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#eaeef0; --panel:#fbfcfc; --panel-2:#e2e8eb; --ink:#0f1519; --ink-2:#48545c; --ink-3:#78848c;
+  --line:#d4dbdf; --line-2:#bcc6cc;
+  --acc:#2f4b7c; --acc-soft:#dee6f2; --acc-ink:#21375c;
+  --pass:#11704a; --pass-soft:#d6ebe0; --warn:#87590a; --warn-soft:#f7e9cd; --fail:#a3251f; --fail-soft:#f7dedb;
+  --shadow:0 1px 2px rgba(15,21,25,.06),0 10px 28px -16px rgba(15,21,25,.28);
+  --ui:'Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'DM Mono',ui-monospace,Consolas,'Courier New',monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0d1114; --panel:#161c20; --panel-2:#1f272c; --ink:#e4e9eb; --ink-2:#aab5bc; --ink-3:#78848c;
+    --line:#28323a; --line-2:#37434c;
+    --acc:#8fb0e0; --acc-soft:#1a2740; --acc-ink:#b9cdea;
+    --pass:#5cc292; --pass-soft:#12301f; --warn:#dda94f; --warn-soft:#3a2b10; --fail:#ef8b82; --fail-soft:#3f1a17;
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 28px -16px rgba(0,0,0,.85);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d1114; --panel:#161c20; --panel-2:#1f272c; --ink:#e4e9eb; --ink-2:#aab5bc; --ink-3:#78848c;
+  --line:#28323a; --line-2:#37434c;
+  --acc:#8fb0e0; --acc-soft:#1a2740; --acc-ink:#b9cdea;
+  --pass:#5cc292; --pass-soft:#12301f; --warn:#dda94f; --warn-soft:#3a2b10; --fail:#ef8b82; --fail-soft:#3f1a17;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 10px 28px -16px rgba(0,0,0,.85);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.mono,code{font-family:var(--mono);font-size:.9em}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance;font-weight:600}
+button{font:inherit;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* header */
+header.top{padding:26px 0 18px;display:flex;flex-wrap:wrap;gap:18px 26px;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line)}
+header.top h1{font-size:clamp(24px,3.4vw,34px);letter-spacing:-.015em}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);font-weight:500}
+header.top p{margin:6px 0 0;color:var(--ink-2);max-width:66ch}
+.hactions{display:flex;gap:8px;align-items:center}
+.lang{display:inline-flex;border:1px solid var(--line-2);border-radius:7px;overflow:hidden}
+.lang button{background:var(--panel);border:0;padding:6px 11px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink-2)}
+.lang button.on{background:var(--acc);color:#fff}
+.privacy{display:inline-flex;align-items:center;gap:8px;background:var(--pass-soft);color:var(--pass);border-radius:7px;padding:7px 12px;font-size:13px;font-weight:500;max-width:44ch;line-height:1.35}
+
+/* drop */
+.drop{margin:20px 0 0;background:var(--panel);border:2px dashed var(--line-2);border-radius:12px;padding:26px 22px;text-align:center;transition:border-color .15s,background .15s}
+.drop.over{border-color:var(--acc);background:var(--acc-soft)}
+.drop h2{font-size:19px}
+.drop p{margin:6px 0 14px;color:var(--ink-2);font-size:14px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.btn{border:1px solid var(--line-2);background:var(--panel);border-radius:8px;padding:9px 15px;cursor:pointer;font-weight:500}
+.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn:hover{border-color:var(--acc)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,.lang button:focus-visible,.drop:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.opts{margin:12px 0 0;font-size:13px;color:var(--ink-2);display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.opts label{display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+.opts input{accent-color:var(--acc)}
+.opts .pk{flex-direction:column;align-items:stretch;gap:4px;cursor:default;min-width:min(100%,520px)}
+.opts .pk input{font-family:var(--mono);font-size:13px;padding:7px 9px;border:1px solid var(--line-2);border-radius:7px;background:var(--panel);color:var(--ink)}
+.opts .pk input:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.checks .f .n{color:var(--ink-3)}
+
+/* meta bar */
+.filebar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;margin:14px 0 0;font-size:13px;color:var(--ink-2)}
+.filebar .name{font-family:var(--mono);color:var(--ink);font-weight:500}
+.filebar .sep{color:var(--line-2)}
+
+/* verdict */
+.verdict{margin:16px 0 0;border-radius:12px;padding:18px 22px;border:1px solid var(--line);background:var(--panel);display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline}
+.verdict .big{font-size:23px;font-weight:700;letter-spacing:-.01em}
+.verdict .sub{color:var(--ink-2);font-size:14px;max-width:70ch}
+.verdict.pass{background:var(--pass-soft);border-color:var(--pass)} .verdict.pass .big{color:var(--pass)}
+.verdict.fail{background:var(--fail-soft);border-color:var(--fail)} .verdict.fail .big{color:var(--fail)}
+.verdict.warn{background:var(--warn-soft);border-color:var(--warn)} .verdict.warn .big{color:var(--warn)}
+.verdict.idle{border-style:dashed;color:var(--ink-2)}
+
+.cols{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;margin:16px 0 0;align-items:start}
+@media (max-width:920px){.cols{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+.card h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:10px}
+
+/* checks */
+.checks{list-style:none;margin:0;padding:0}
+.checks li{display:grid;grid-template-columns:24px 1fr;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);align-items:start}
+.checks li:last-child{border-bottom:0}
+.ic{width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;font-family:var(--mono);margin-top:1px}
+.ok .ic{background:var(--pass-soft);color:var(--pass)} .warn .ic{background:var(--warn-soft);color:var(--warn)} .fail .ic{background:var(--fail-soft);color:var(--fail)}
+.checks .t{display:block;font-weight:500}
+.checks .d{display:block;font-size:13px;color:var(--ink-2);margin-top:1px}
+.checks .f{display:block;font-size:12.5px;margin-top:5px;padding-left:11px;border-left:2px solid var(--line-2)}
+.checks .f div{margin:2px 0}
+.checks .f .p{color:var(--fail)} .checks .f .w{color:var(--warn)}
+
+/* summary */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:13.5px}
+.kv .k{color:var(--ink-3);font-family:var(--mono);font-size:12px}
+.kv .v{overflow-wrap:anywhere}
+.limits{list-style:none;margin:0;padding:0;font-size:13px;color:var(--ink-2)}
+.limits li{padding:7px 0 7px 20px;position:relative;border-bottom:1px solid var(--line)}
+.limits li:last-child{border-bottom:0}
+.limits li::before{content:'—';position:absolute;left:0;color:var(--ink-3)}
+.limits b{color:var(--ink)}
+
+/* tables */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:10px 0 0}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:560px}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:500;background:var(--panel-2)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.h{font-family:var(--mono);color:var(--ink-2)}
+.pill{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:999px;font-weight:500}
+.pill.y{background:var(--pass-soft);color:var(--pass)} .pill.n{background:var(--fail-soft);color:var(--fail)}
+.pill.q{background:var(--panel-2);color:var(--ink-3)} .pill.w{background:var(--warn-soft);color:var(--warn)}
+.res-over_18{color:var(--pass)} .res-under_18{color:var(--warn)} .res-error{color:var(--ink-3)}
+.more{font-size:12.5px;color:var(--ink-3);padding:8px 11px}
+section.block{margin:22px 0 0}
+section.block h2{font-size:17px;margin-bottom:2px}
+section.block .lede{color:var(--ink-2);font-size:13.5px;margin:0}
+.hidden{display:none!important}
+footer{margin:30px 0 0;border-top:1px solid var(--line);padding:18px 0 44px;color:var(--ink-3);font-size:12.5px}
+footer p{margin:7px 0;max-width:88ch}
+footer b{color:var(--ink-2)}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line-2);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <div class="tag" data-i18n="kicker">Precintum · independent verifier</div>
+    <h1 data-i18n="title">Evidence package verifier</h1>
+    <p data-i18n="lede">Drop an evidence package exported with <code>precintum export</code> and this page recomputes every hash, root, inclusion proof and signature from scratch, without using the operator's software.</p>
+  </div>
+  <div class="hactions">
+    <span class="privacy" data-i18n="privacy">Nothing leaves your browser. There is no server: the file is read and verified locally.</span>
+    <span class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="es">ES</button>
+    </span>
+  </div>
+</header>
+
+<div class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-help">
+  <h2 data-i18n="dropTitle">Drop the package here</h2>
+  <p id="drop-help" data-i18n="dropHelp">A <code>.json</code> file produced by <code>precintum export --desde … --hasta …</code>. Nothing is uploaded.</p>
+  <div class="btns">
+    <button class="btn primary" id="pick" type="button" data-i18n="pick">Choose file…</button>
+    <button class="btn" id="example" type="button" data-i18n="loadExample">Load example package</button>
+  </div>
+  <div class="opts">
+    <label><input type="checkbox" id="sigs" checked> <span data-i18n="optSigs">Verify Schnorr signatures (slower on large packages)</span></label>
+    <label class="pk"><span data-i18n="optPubkey">Operator public key (npub or hex), from a source you trust</span><input type="text" id="pubkey" placeholder="npub1…" spellcheck="false" autocomplete="off" autocapitalize="off"></label>
+  </div>
+  <input type="file" id="file" accept=".json,application/json" class="hidden">
+</div>
+
+<div class="filebar" id="filebar"></div>
+<div id="verdict" role="status" aria-live="polite"></div>
+
+<div class="cols" id="detail">
+  <div class="card">
+    <h3 data-i18n="checksTitle">Checks</h3>
+    <ul class="checks" id="checks"></ul>
+  </div>
+  <div>
+    <div class="card">
+      <h3 data-i18n="summaryTitle">Package</h3>
+      <div class="kv" id="summary"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 data-i18n="limitsTitle">What this tool cannot verify</h3>
+      <ul class="limits" id="limits"></ul>
+    </div>
+  </div>
+</div>
+
+<section class="block" id="batches-block">
+  <h2 data-i18n="batchesTitle">Batches</h2>
+  <p class="lede" data-i18n="batchesLede">One row per hourly window. An empty batch is a heartbeat: it records a window with no registered verifications.</p>
+  <div class="tablewrap"><table id="batches"></table></div>
+</section>
+
+<section class="block" id="receipts-block">
+  <h2 data-i18n="receiptsTitle">Receipts</h2>
+  <p class="lede" data-i18n="receiptsLede">Eight fields each, none of which identifies a person. The hash is recomputed here from the fields.</p>
+  <div class="tablewrap"><table id="receipts"></table><div class="more" id="receipts-more"></div></div>
+</section>
+
+<footer>
+  <p><b data-i18n="fLocalT">Local verification.</b> <span data-i18n="fLocal">This page contains its own SHA-256 and BIP-340 Schnorr implementations, in plain JavaScript with no external libraries, so that verifying does not require trusting a download, a server or the operator. The code is part of the Precintum repository and a test in that repository cross-checks it against the server implementation on every run.</span></p>
+  <p><b data-i18n="fScopeT">Scope.</b> <span data-i18n="fScope">These results concern the integrity and consistency of the delivered records. Authenticating the TSA timestamp and the Bitcoin anchor requires external validation. The checks do not prove that the recorded events happened or that all events were recorded; that requires independent checks and the operator’s responsibility.</span></p>
+  <p><b data-i18n="fLegalT">Notice.</b> <span data-i18n="fLegal">Statements about eIDAS, legal presumption or evidential value are informational, not legal advice, and should be reviewed by a qualified professional.</span></p>
+</footer>
+</div>
+<script>/**
+ * Criptografía del verificador, sin dependencias: SHA-256 y verificación de firmas Schnorr
+ * BIP-340 sobre secp256k1. Vive en el propio fichero de la página para que el auditor no tenga
+ * que confiar en ninguna descarga externa ni en el software del operador.
+ *
+ * Se ejecuta igual en el navegador y en Node, y hay un test en el repositorio
+ * (`precintum/test/web-verifier.test.ts`) que lo contrasta contra la implementación del servidor.
+ */
+(function (root) {
+  'use strict';
+
+  /* ======================= SHA-256 ======================= */
+  var K = new Uint32Array([
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ]);
+  function rotr(x, n) { return (x >>> n) | (x << (32 - n)); }
+
+  function sha256(msg) {
+    var l = msg.length;
+    var padLen = ((l + 9 + 63) >> 6) << 6;
+    var buf = new Uint8Array(padLen);
+    buf.set(msg);
+    buf[l] = 0x80;
+    var dv = new DataView(buf.buffer);
+    var bits = l * 8;
+    dv.setUint32(padLen - 4, bits >>> 0);
+    dv.setUint32(padLen - 8, Math.floor(bits / 0x100000000));
+    var H = new Uint32Array([
+      0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+    ]);
+    var W = new Uint32Array(64);
+    var i;
+    for (var off = 0; off < padLen; off += 64) {
+      for (i = 0; i < 16; i++) W[i] = dv.getUint32(off + i * 4);
+      for (i = 16; i < 64; i++) {
+        var s0 = rotr(W[i - 15], 7) ^ rotr(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+        var s1 = rotr(W[i - 2], 17) ^ rotr(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+        W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+      }
+      var a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (i = 0; i < 64; i++) {
+        var S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        var ch = (e & f) ^ (~e & g);
+        var t1 = (h + S1 + ch + K[i] + W[i]) >>> 0;
+        var S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        var maj = (a & b) ^ (a & c) ^ (b & c);
+        var t2 = (S0 + maj) >>> 0;
+        h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+      }
+      H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0; H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+      H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0; H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+    }
+    var out = new Uint8Array(32);
+    var odv = new DataView(out.buffer);
+    for (var j = 0; j < 8; j++) odv.setUint32(j * 4, H[j]);
+    return out;
+  }
+
+  /* ======================= bytes ======================= */
+  var enc = new TextEncoder();
+  function utf8(s) { return enc.encode(s); }
+  function hex(b) {
+    var s = '';
+    for (var i = 0; i < b.length; i++) s += (b[i] < 16 ? '0' : '') + b[i].toString(16);
+    return s;
+  }
+  function isHex64(s) { return typeof s === 'string' && /^[0-9a-f]{64}$/.test(s); }
+  function fromHex(h) {
+    if (typeof h !== 'string' || h.length % 2 !== 0 || /[^0-9a-f]/.test(h)) {
+      throw new Error('no es hexadecimal: ' + String(h).slice(0, 24));
+    }
+    var o = new Uint8Array(h.length / 2);
+    for (var i = 0; i < o.length; i++) o[i] = parseInt(h.substr(i * 2, 2), 16);
+    return o;
+  }
+  function concat() {
+    var n = 0, i;
+    for (i = 0; i < arguments.length; i++) n += arguments[i].length;
+    var o = new Uint8Array(n), p = 0;
+    for (i = 0; i < arguments.length; i++) { o.set(arguments[i], p); p += arguments[i].length; }
+    return o;
+  }
+
+  /* ======================= secp256k1 / BIP-340 =======================
+   * Solo verificación: no firma, no genera claves y no necesita aleatoriedad, así que no hay
+   * secreto que proteger frente a canal lateral. Coordenadas jacobianas para evitar una
+   * inversión modular en cada duplicación; una sola inversión al final.
+   */
+  var P = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn;
+  var N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
+  var GX = 0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n;
+  var GY = 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n;
+
+  function mod(a, m) { var r = a % m; return r >= 0n ? r : r + m; }
+  function powMod(base, exp, m) {
+    var r = 1n, b = mod(base, m), e = exp;
+    while (e > 0n) {
+      if (e & 1n) r = (r * b) % m;
+      b = (b * b) % m;
+      e >>= 1n;
+    }
+    return r;
+  }
+  function invMod(a, m) {
+    var lm = 1n, hm = 0n, low = mod(a, m), high = m;
+    if (low === 0n) throw new Error('sin inverso modular de 0');
+    while (low > 1n) {
+      var r = high / low;
+      var nm = hm - lm * r;
+      var nn = high - low * r;
+      hm = lm; lm = nm; high = low; low = nn;
+    }
+    return mod(lm, m);
+  }
+  function bigFromBytes(b) {
+    var x = 0n;
+    for (var i = 0; i < b.length; i++) x = (x << 8n) | BigInt(b[i]);
+    return x;
+  }
+  function bytes32(x) {
+    var o = new Uint8Array(32), v = x;
+    for (var i = 31; i >= 0; i--) { o[i] = Number(v & 0xffn); v >>= 8n; }
+    return o;
+  }
+
+  /* Punto jacobiano {X, Y, Z}: x = X/Z², y = Y/Z³. Z = 0n es el punto en el infinito. */
+  var INF = { X: 0n, Y: 1n, Z: 0n };
+
+  function jDouble(p) {
+    if (p.Z === 0n || p.Y === 0n) return INF;
+    var A = (p.X * p.X) % P;
+    var B = (p.Y * p.Y) % P;
+    var C = (B * B) % P;
+    var t = (p.X + B) % P;
+    var D = mod(2n * (((t * t) % P) - A - C), P);
+    var E = (3n * A) % P;
+    var F = (E * E) % P;
+    var X3 = mod(F - 2n * D, P);
+    var Y3 = mod(E * mod(D - X3, P) - 8n * C, P);
+    var Z3 = mod(2n * p.Y * p.Z, P);
+    return { X: X3, Y: Y3, Z: Z3 };
+  }
+
+  function jAdd(p, q) {
+    if (p.Z === 0n) return q;
+    if (q.Z === 0n) return p;
+    var Z1Z1 = (p.Z * p.Z) % P;
+    var Z2Z2 = (q.Z * q.Z) % P;
+    var U1 = (p.X * Z2Z2) % P;
+    var U2 = (q.X * Z1Z1) % P;
+    var S1 = (((p.Y * q.Z) % P) * Z2Z2) % P;
+    var S2 = (((q.Y * p.Z) % P) * Z1Z1) % P;
+    var H = mod(U2 - U1, P);
+    var r = mod(2n * (S2 - S1), P);
+    if (H === 0n) return r === 0n ? jDouble(p) : INF;
+    var I = (mod(2n * H, P) * mod(2n * H, P)) % P;
+    var J = (H * I) % P;
+    var V = (U1 * I) % P;
+    var X3 = mod(r * r - J - 2n * V, P);
+    var Y3 = mod(r * mod(V - X3, P) - 2n * S1 * J, P);
+    var s = (p.Z + q.Z) % P;
+    var Z3 = (mod(s * s - Z1Z1 - Z2Z2, P) * H) % P;
+    return { X: X3, Y: Y3, Z: Z3 };
+  }
+
+  function jMul(p, k) {
+    var scalar = mod(k, N);
+    if (scalar === 0n || p.Z === 0n) return INF;
+    var acc = INF;
+    var add = p;
+    var s = scalar;
+    while (s > 0n) {
+      if (s & 1n) acc = jAdd(acc, add);
+      add = jDouble(add);
+      s >>= 1n;
+    }
+    return acc;
+  }
+
+  function toAffine(p) {
+    if (p.Z === 0n) return null;
+    var zi = invMod(p.Z, P);
+    var zi2 = (zi * zi) % P;
+    return { x: (p.X * zi2) % P, y: (((p.Y * zi2) % P) * zi) % P };
+  }
+
+  /** lift_x de BIP-340: del x de 32 bytes al punto de y par, o null si no está en la curva. */
+  function liftX(x) {
+    if (x <= 0n || x >= P) return null;
+    var c = mod(((x * x) % P) * x + 7n, P);
+    var y = powMod(c, (P + 1n) / 4n, P);
+    if ((y * y) % P !== c) return null;
+    return { X: x, Y: y % 2n === 0n ? y : P - y, Z: 1n };
+  }
+
+  var taggedCache = {};
+  /** tagged_hash de BIP-340: sha256(sha256(tag) || sha256(tag) || msg). */
+  function taggedHash(tag, msg) {
+    var pre = taggedCache[tag];
+    if (!pre) {
+      var t = sha256(utf8(tag));
+      pre = taggedCache[tag] = concat(t, t);
+    }
+    return sha256(concat(pre, msg));
+  }
+
+  /**
+   * Verificación BIP-340. `sigHex` 64 bytes, `msgHex` 32 bytes (en Nostr, el id del evento),
+   * `pubHex` 32 bytes (la clave x-only). Devuelve true solo si la firma es válida.
+   */
+  function schnorrVerify(sigHex, msgHex, pubHex) {
+    try {
+      if (!/^[0-9a-f]{128}$/.test(sigHex) || !isHex64(msgHex) || !isHex64(pubHex)) return false;
+      var sig = fromHex(sigHex);
+      var msg = fromHex(msgHex);
+      var pub = fromHex(pubHex);
+      var r = bigFromBytes(sig.subarray(0, 32));
+      var s = bigFromBytes(sig.subarray(32, 64));
+      if (r >= P || s >= N) return false;
+      var Pt = liftX(bigFromBytes(pub));
+      if (!Pt) return false;
+      var e = mod(bigFromBytes(taggedHash('BIP0340/challenge', concat(sig.subarray(0, 32), pub, msg))), N);
+      // R = s·G − e·P
+      var R = jAdd(jMul({ X: GX, Y: GY, Z: 1n }, s), jMul(Pt, mod(N - e, N)));
+      var aff = toAffine(R);
+      if (!aff) return false;
+      if (aff.y % 2n !== 0n) return false;
+      return aff.x === r;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  root.PrecintumCrypto = {
+    sha256: sha256,
+    utf8: utf8,
+    hex: hex,
+    fromHex: fromHex,
+    isHex64: isHex64,
+    concat: concat,
+    schnorrVerify: schnorrVerify,
+    taggedHash: taggedHash,
+    // expuesto para los tests
+    _bigFromBytes: bigFromBytes,
+    _bytes32: bytes32,
+    _liftX: liftX,
+    _jMul: jMul,
+    _toAffine: toAffine,
+    _G: { X: GX, Y: GY, Z: 1n },
+    _N: N,
+    _P: P,
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>/**
+ * Motor de comprobaciones del verificador. Reimplementa desde cero, y sin usar el software del
+ * operador, lo mismo que hace `verifyPackage` en el servidor: hashes de recibo con separación de
+ * dominio, cadena, árbol de Merkle RFC 6962, pruebas de inclusión RFC 9162 §2.1.3.2, apertura del
+ * compromiso de recuento, id y firma de los eventos de lote, cobertura horaria, lectura del token
+ * RFC 3161 (imprint y genTime, regla de ventana de anclaje) y del fichero .ots (digest y
+ * atestación Bitcoin), y quién firma.
+ *
+ * Regla: no se cree nada que haya escrito el operador. Lo declarado en el paquete (`gaps`,
+ * `batchChainOk`, `tsaGenTime`, `otsComplete`, `agentPubkey`) se contrasta con lo recalculado.
+ * Lo que no se puede recalcular sin salir del paquete se devuelve como `note`, no como aprobado.
+ *
+ * No emite texto: devuelve hallazgos como {level, key, params}. Los idiomas viven en la interfaz.
+ * Así el motor se puede probar en Node contra la implementación del servidor.
+ */
+(function (root) {
+  'use strict';
+  var C = root.PrecintumCrypto;
+
+  var DOMAINS = { receipt: 'precintum/receipt/v1', genesis: 'precintum/genesis/v1', count: 'precintum/count/v1' };
+  var SEP = new Uint8Array([0x0a]);
+  var BATCH_KIND = 7676;
+  var RESULTS = { over_18: 1, under_18: 1, error: 1 };
+  var RECEIPT_KEYS = ['nonce', 'policy', 'prev', 'result', 'seq', 'ts', 'v', 'verifier'];
+  var DEFAULT_MAX_GAP = 86400;
+  var CLOCK_SKEW_TOLERANCE = 120;
+  var OID_SIGNED_DATA = '1.2.840.113549.1.7.2';
+  var OID_TST_INFO = '1.2.840.113549.1.9.16.1.4';
+  var OID_SHA256_HEX = '608648016503040201'; // 2.16.840.1.101.3.4.2.1, valor DER exacto.
+  var OTS_MAGIC_HEX = '004f70656e54696d657374616d7073000050726f6f6600bf89e2e884e89294';
+  var OTS_BITCOIN_TAG = '0588960d73d71901';
+  var OTS_PENDING_TAG = '83dfe30d2ef90c8e';
+
+  var isInt = function (v) { return typeof v === 'number' && Number.isSafeInteger(v); };
+  var isInstant = function (v) { return isInt(v) && Number.isFinite(new Date(v * 1000).getTime()); };
+  var isRange = function (v) {
+    return Array.isArray(v) && v.length === 2 && isInstant(v[0]) && isInstant(v[1]) && v[1] > v[0];
+  };
+  var hasOwn = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  function hashWithDomain(domain, data) {
+    return C.hex(C.sha256(C.concat(C.utf8(domain), SEP, data)));
+  }
+
+  /** JSON canónico de un objeto plano: claves ordenadas, sin espacios. Igual que en el servidor. */
+  function canonicalize(obj) {
+    var keys = Object.keys(obj).sort();
+    var parts = [];
+    for (var i = 0; i < keys.length; i++) {
+      var v = obj[keys[i]];
+      if (v === undefined) continue;
+      if (typeof v === 'number' && !Number.isSafeInteger(v)) throw new Error('valor no canonicalizable');
+      parts.push(JSON.stringify(keys[i]) + ':' + JSON.stringify(v));
+    }
+    return '{' + parts.join(',') + '}';
+  }
+
+  function receiptHash(r) {
+    return hashWithDomain(DOMAINS.receipt, C.utf8(canonicalize(r)));
+  }
+  function commitCount(count, salt) {
+    return hashWithDomain(DOMAINS.count, C.utf8(String(count) + ':' + salt));
+  }
+  var EMPTY_ROOT = C.hex(C.sha256(new Uint8Array(0)));
+
+  /* -------- Merkle RFC 6962 -------- */
+  function leafHash(hex64) {
+    return C.hex(C.sha256(C.concat(new Uint8Array([0]), C.fromHex(hex64))));
+  }
+  function nodeHash(l, r) {
+    return C.hex(C.sha256(C.concat(new Uint8Array([1]), C.fromHex(l), C.fromHex(r))));
+  }
+  /** Mayor potencia de 2 estrictamente menor que n: el punto de corte de RFC 6962. */
+  function splitPoint(n) {
+    var k = 1;
+    while (k * 2 < n) k *= 2;
+    return k;
+  }
+  function merkleRootFromLeafHashes(leaves) {
+    if (leaves.length === 0) return EMPTY_ROOT;
+    if (leaves.length === 1) return leaves[0];
+    var k = splitPoint(leaves.length);
+    return nodeHash(merkleRootFromLeafHashes(leaves.slice(0, k)), merkleRootFromLeafHashes(leaves.slice(k)));
+  }
+  function merkleRoot(receiptHashes) {
+    var leaves = [];
+    for (var i = 0; i < receiptHashes.length; i++) leaves.push(leafHash(receiptHashes[i]));
+    return merkleRootFromLeafHashes(leaves);
+  }
+  /** Verificación de inclusión de RFC 9162 §2.1.3.2, con el hash del recibo como dato de la hoja. */
+  function verifyInclusion(receiptHashHex, proof, rootHex) {
+    if (!proof || !isInt(proof.index) || !isInt(proof.size)) return false;
+    if (!Array.isArray(proof.path)) return false;
+    if (proof.index < 0 || proof.index >= proof.size) return false;
+    var fn = proof.index;
+    var sn = proof.size - 1;
+    var r = leafHash(receiptHashHex);
+    for (var i = 0; i < proof.path.length; i++) {
+      var p = proof.path[i];
+      if (!C.isHex64(p)) return false;
+      if (sn === 0) return false;
+      if (fn % 2 === 1 || fn === sn) {
+        r = nodeHash(p, r);
+        while (fn % 2 === 0 && fn !== 0) { fn = Math.floor(fn / 2); sn = Math.floor(sn / 2); }
+      } else {
+        r = nodeHash(r, p);
+      }
+      fn = Math.floor(fn / 2);
+      sn = Math.floor(sn / 2);
+    }
+    return sn === 0 && r === rootHex;
+  }
+
+  /* -------- eventos Nostr -------- */
+  function serializeEvent(e) {
+    return JSON.stringify([0, e.pubkey, e.created_at, e.kind, e.tags, e.content]);
+  }
+  function computeEventId(e) {
+    return C.hex(C.sha256(C.utf8(serializeEvent(e))));
+  }
+  function tagValue(event, name) {
+    for (var i = 0; i < event.tags.length; i++) if (event.tags[i][0] === name) return event.tags[i];
+    return null;
+  }
+  function tagCount(event, name) {
+    var n = 0;
+    for (var i = 0; i < event.tags.length; i++) if (event.tags[i][0] === name) n++;
+    return n;
+  }
+  var BATCH_TAGS = ['v', 'seq', 'prev', 'window', 'policy', 'count'];
+
+  /* -------- npub (NIP-19, bech32) -------- */
+  var BECH32 = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+  /** Decodifica un npub a pubkey hex; acepta también hex de 64. Devuelve null si no es válido. */
+  function decodePubkey(input) {
+    if (typeof input !== 'string') return null;
+    var s = input.trim().toLowerCase();
+    if (s.indexOf('nostr:') === 0) s = s.slice(6);
+    if (C.isHex64(s)) return s;
+    if (s.indexOf('npub1') !== 0 || s.length !== 63) return null;
+    var data = [];
+    for (var i = 5; i < s.length; i++) {
+      var v = BECH32.indexOf(s[i]);
+      if (v < 0) return null;
+      data.push(v);
+    }
+    // checksum: polymod sobre hrp expandido + datos debe dar 1
+    var values = [110 >> 5, 112 >> 5, 117 >> 5, 98 >> 5, 0, 110 & 31, 112 & 31, 117 & 31, 98 & 31].concat(data);
+    var GEN = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
+    var chk = 1;
+    for (var j = 0; j < values.length; j++) {
+      var top = chk >>> 25;
+      chk = ((chk & 0x1ffffff) << 5) ^ values[j];
+      for (var k = 0; k < 5; k++) if ((top >> k) & 1) chk ^= GEN[k];
+    }
+    if (chk !== 1) return null;
+    var bits = data.slice(0, data.length - 6);
+    var acc = 0, nbits = 0, out = [];
+    for (var m = 0; m < bits.length; m++) {
+      acc = (acc << 5) | bits[m];
+      nbits += 5;
+      while (nbits >= 8) { nbits -= 8; out.push((acc >> nbits) & 0xff); }
+    }
+    if (out.length !== 32) return null;
+    return C.hex(new Uint8Array(out));
+  }
+
+  /* -------- DER mínimo para leer el TSTInfo del token RFC 3161 -------- */
+  function derNode(b, off) {
+    if (off + 2 > b.length) throw new Error('DER truncado');
+    var tag = b[off];
+    var len = b[off + 1];
+    var hl = 2;
+    if (len & 0x80) {
+      var n = len & 0x7f;
+      if (n === 0 || n > 4) throw new Error('DER: longitud no soportada');
+      len = 0;
+      for (var i = 0; i < n; i++) len = len * 256 + b[off + 2 + i];
+      hl = 2 + n;
+    }
+    if (off + hl + len > b.length) throw new Error('DER: longitud fuera del buffer');
+    return { tag: tag, start: off + hl, end: off + hl + len };
+  }
+  function derChildren(b, node) {
+    var out = [];
+    var p = node.start;
+    while (p < node.end) {
+      var c = derNode(b, p);
+      out.push(c);
+      p = c.end;
+    }
+    return out;
+  }
+  function derOid(b, node) {
+    if (node.tag !== 0x06) throw new Error('DER: no es un OID');
+    var parts = [];
+    var first = b[node.start];
+    parts.push(Math.floor(first / 40), first % 40);
+    var val = 0;
+    for (var i = node.start + 1; i < node.end; i++) {
+      val = val * 128 + (b[i] & 0x7f);
+      if ((b[i] & 0x80) === 0) { parts.push(val); val = 0; }
+    }
+    return parts.join('.');
+  }
+  function derGeneralizedTime(b, node) {
+    if (node.tag !== 0x18) throw new Error('DER: no es GeneralizedTime');
+    var s = '';
+    for (var i = node.start; i < node.end; i++) s += String.fromCharCode(b[i]);
+    var m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(?:\.\d+)?Z$/.exec(s);
+    if (!m) throw new Error('DER: GeneralizedTime no UTC');
+    return Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) / 1000);
+  }
+  /** Lee imprint (hex) y genTime (segundos unix) de un TimeStampToken DER. Lanza si no cuadra. */
+  function parseTsaToken(bytes) {
+    var ci = derNode(bytes, 0);
+    if (ci.tag !== 0x30) throw new Error('token: no es ContentInfo');
+    var ciKids = derChildren(bytes, ci);
+    if (derOid(bytes, ciKids[0]) !== OID_SIGNED_DATA) throw new Error('token: no es SignedData');
+    var wrapped = derChildren(bytes, ciKids[1]);
+    var sd = wrapped[0];
+    var sdKids = derChildren(bytes, sd);
+    // version, digestAlgorithms, encapContentInfo, [certificates], [crls], signerInfos
+    var eci = sdKids[2];
+    var eciKids = derChildren(bytes, eci);
+    if (derOid(bytes, eciKids[0]) !== OID_TST_INFO) throw new Error('token: no es TSTInfo');
+    var eContent = derChildren(bytes, eciKids[1])[0];
+    if (eContent.tag !== 0x04) throw new Error('token: eContent no es OCTET STRING');
+    var tst = bytes.subarray(eContent.start, eContent.end);
+    var info = derNode(tst, 0);
+    var kids = derChildren(tst, info);
+    // version, policy, messageImprint, serialNumber, genTime, ...
+    var imprintKids = derChildren(tst, kids[2]);
+    var hashAlgorithm = imprintKids[0];
+    if (hashAlgorithm.tag !== 0x30) throw new Error('token: hashAlgorithm no es SEQUENCE');
+    var algorithm = derChildren(tst, hashAlgorithm)[0];
+    if (algorithm.tag !== 0x06 || C.hex(tst.subarray(algorithm.start, algorithm.end)) !== OID_SHA256_HEX) {
+      throw new Error('token: el algoritmo del imprint no es sha256');
+    }
+    var hashed = imprintKids[1];
+    if (hashed.tag !== 0x04) throw new Error('token: hashedMessage no es OCTET STRING');
+    if (hashed.end - hashed.start !== 32) throw new Error('token: el imprint debe tener 32 bytes');
+    return {
+      imprintHex: C.hex(tst.subarray(hashed.start, hashed.end)),
+      genTime: derGeneralizedTime(tst, kids[4]),
+    };
+  }
+
+  /* -------- OpenTimestamps: cabecera, digest y atestaciones -------- */
+  function otsReader(bytes) {
+    var off = 0;
+    return {
+      remaining: function () { return bytes.length - off; },
+      byte: function () {
+        if (off >= bytes.length) throw new Error('ots: fin de datos inesperado');
+        return bytes[off++];
+      },
+      bytes: function (n) {
+        if (!isInt(n) || n < 0 || n > bytes.length - off) throw new Error('ots: fin de datos inesperado');
+        var out = bytes.subarray(off, off + n);
+        off += n;
+        return out;
+      },
+      varuint: function () {
+        var value = 0;
+        var scale = 1;
+        while (true) {
+          var b = this.byte();
+          value += (b & 0x7f) * scale;
+          if (!isInt(value)) throw new Error('ots: varuint demasiado grande');
+          if ((b & 0x80) === 0) return value;
+          scale *= 128;
+          if (!isInt(scale)) throw new Error('ots: varuint demasiado grande');
+        }
+      },
+      varbytes: function () {
+        var n = this.varuint();
+        if (n > 4096) throw new Error('ots: varbytes demasiado largo');
+        return this.bytes(n);
+      },
+    };
+  }
+
+  function inspectOts(bytes) {
+    var r = otsReader(bytes);
+    if (C.hex(r.bytes(OTS_MAGIC_HEX.length / 2)) !== OTS_MAGIC_HEX) throw new Error('ots: cabecera inválida');
+    if (r.varuint() !== 1) throw new Error('ots: versión no soportada');
+    if (r.byte() !== 0x08) throw new Error('ots: el hash del fichero no es sha256');
+    var result = { digestHex: C.hex(r.bytes(32)), hasBitcoin: false, hasPending: false };
+
+    function attestation() {
+      var tag = C.hex(r.bytes(8));
+      var payload = otsReader(r.varbytes());
+      if (tag === OTS_BITCOIN_TAG) {
+        payload.varuint();
+        if (payload.remaining() !== 0) throw new Error('ots: bytes sobrantes en atestación bitcoin');
+        result.hasBitcoin = true;
+      } else if (tag === OTS_PENDING_TAG) {
+        var uri = new TextDecoder().decode(payload.varbytes());
+        if (payload.remaining() !== 0) throw new Error('ots: bytes sobrantes en atestación pending');
+        var calendarValid = false;
+        if (/^https?:\/\/[A-Za-z0-9._\-:/]+$/.test(uri)) {
+          try {
+            var calendar = new URL(uri);
+            calendarValid = (calendar.protocol === 'http:' || calendar.protocol === 'https:') && calendar.hostname !== '';
+          } catch (_) { /* Puerto o dirección no válidos. */ }
+        }
+        if (!calendarValid) throw new Error('ots: uri de calendario inválida');
+        result.hasPending = true;
+      }
+      // Los tags desconocidos tienen payload opaco: sus bytes no son otras atestaciones.
+    }
+
+    function item(tag, depth) {
+      if (tag === 0x00) {
+        attestation();
+        return;
+      }
+      if (tag === 0xf0 || tag === 0xf1) r.varbytes();
+      else if (tag !== 0x02 && tag !== 0x03 && tag !== 0x08 && tag !== 0x67 && tag !== 0xf2 && tag !== 0xf3) {
+        throw new Error('ots: operación desconocida');
+      }
+      // Solo se comprueba la estructura; no se calculan mensajes ni se consulta Bitcoin.
+      timestamp(depth + 1);
+    }
+
+    function timestamp(depth) {
+      if (depth > 256) throw new Error('ots: anidamiento excesivo');
+      var tag = r.byte();
+      while (tag === 0xff) {
+        item(r.byte(), depth);
+        tag = r.byte();
+      }
+      item(tag, depth);
+    }
+
+    timestamp(0);
+    if (r.remaining() !== 0) throw new Error('ots: bytes sobrantes');
+    return result;
+  }
+
+  /* -------- recibos -------- */
+  function receiptProblem(r) {
+    if (!r || typeof r !== 'object' || Array.isArray(r)) return 'no es un objeto';
+    var keys = Object.keys(r).sort();
+    if (keys.length !== RECEIPT_KEYS.length || keys.join(',') !== RECEIPT_KEYS.join(',')) {
+      return 'campos ' + keys.join(',');
+    }
+    if (r.v !== 1) return 'v';
+    if (!isInt(r.seq) || r.seq < 1) return 'seq';
+    if (!C.isHex64(r.prev)) return 'prev';
+    if (!C.isHex64(r.nonce)) return 'nonce';
+    if (!C.isHex64(r.policy)) return 'policy';
+    if (!C.isHex64(r.verifier)) return 'verifier';
+    if (typeof r.result !== 'string' || !hasOwn(RESULTS, r.result)) return 'result';
+    if (!isInt(r.ts) || r.ts <= 0 || r.ts % 60 !== 0) return 'ts';
+    return null;
+  }
+
+  function batchTypesOk(b) {
+    return b && typeof b === 'object' && isInt(b.seq) && isInt(b.count) && isRange(b.window) &&
+      (b.tsaGenTime === null || isInt(b.tsaGenTime)) &&
+      C.isHex64(b.root) && C.isHex64(b.prevRoot) && C.isHex64(b.eventId) &&
+      Array.isArray(b.receipts) && Array.isArray(b.proofs) &&
+      (b.tsaTokenDer === null || typeof b.tsaTokenDer === 'string') &&
+      (b.ots === null || typeof b.ots === 'string');
+  }
+
+  /**
+   * Comprueba el paquete completo.
+   *   opts.verifySignatures (true): la parte lenta; si se salta, se dice y no se marca verificado.
+   *   opts.expectedPubkey: pubkey hex o npub del operador conocida por un canal fiable.
+   */
+  function verifyPackage(pkg, opts) {
+    opts = opts || {};
+    var findings = [];
+    var checkSignatures = opts.verifySignatures !== false;
+
+    if (!pkg || typeof pkg !== 'object') return { fatal: 'notJson', findings: [], checks: [], batches: [] };
+    if (pkg.format !== 'precintum/export/v1') return { fatal: 'notPackage', found: pkg.format, findings: [], checks: [], batches: [] };
+    if (!Array.isArray(pkg.batches)) return { fatal: 'notPackage', findings: [], checks: [], batches: [] };
+
+    var perCheck = { schema: [], chain: [], inclusion: [], witness: [], pubkey: [], count: [], tsa: [], ots: [] };
+    var pin = function (id, level, key, params) {
+      perCheck[id].push({ level: level, key: key, params: params || {} });
+      findings.push({ level: level, key: key, params: params || {}, check: id });
+    };
+
+    /* --- tipos: nada de lo que se opera puede ser texto disfrazado de número --- */
+    var size = pkg.windowSeconds;
+    if (!isInt(size) || size < 60) pin('witness', 'problem', 'badWindowSeconds', {});
+    var typesOk = true;
+    if (!isRange(pkg.requested)) { typesOk = false; pin('witness', 'problem', 'badRequestedRange', {}); }
+    if (!isRange(pkg.covered)) { typesOk = false; pin('witness', 'problem', 'badCoveredRange', {}); }
+    for (var i0 = 0; i0 < pkg.batches.length; i0++) {
+      if (!batchTypesOk(pkg.batches[i0])) {
+        typesOk = false;
+        pin('witness', 'problem', 'badTypes', { seq: String(pkg.batches[i0] && pkg.batches[i0].seq) });
+      }
+    }
+    if (!typesOk || !isInt(size) || size < 60) {
+      var invalid = finish(pkg, findings, perCheck, [], 0, checkSignatures);
+      // Los renderizadores no deben indexar rangos ni formatear fechas de un sobre inválido.
+      invalid.fatal = 'notPackage';
+      return invalid;
+    }
+
+    if (pkg.covered[0] > pkg.requested[0] || pkg.covered[1] < pkg.requested[1]) {
+      pin('witness', 'problem', 'rangeCoverage', {});
+    }
+    if (pkg.covered[0] % size !== 0 || pkg.covered[1] % size !== 0) {
+      pin('witness', 'problem', 'rangeAlignment', {});
+    }
+
+    var maxGap = isInt(opts.anchorMaxGapSeconds) ? opts.anchorMaxGapSeconds
+      : isInt(pkg.anchorMaxGapSeconds) ? pkg.anchorMaxGapSeconds : DEFAULT_MAX_GAP;
+
+    /* --- clave esperada --- */
+    var expected = null;
+    if (opts.expectedPubkey !== undefined && opts.expectedPubkey !== null && String(opts.expectedPubkey).trim() !== '') {
+      expected = decodePubkey(opts.expectedPubkey);
+      if (!expected) pin('pubkey', 'problem', 'badExpectedPubkey', {});
+    }
+
+    /* --- continuidad y huecos recalculados; lo declarado se contrasta --- */
+    var interiorGaps = 0;
+    var chainContinuous = true;
+    for (var i = 0; i < pkg.batches.length; i++) {
+      var curB = pkg.batches[i];
+      if (curB.window[0] < pkg.covered[0] || curB.window[1] > pkg.covered[1]) {
+        pin('witness', 'problem', 'batchOutsideRange', { seq: curB.seq });
+      }
+      if (curB.window[1] - curB.window[0] !== size) pin('witness', 'problem', 'windowSize', { seq: curB.seq, size: size });
+      if (i === 0) continue;
+      var prevB = pkg.batches[i - 1];
+      if (curB.seq !== prevB.seq + 1) { chainContinuous = false; pin('witness', 'problem', 'batchSeqJump', { from: prevB.seq, to: curB.seq }); }
+      else if (curB.prevRoot !== prevB.root) { chainContinuous = false; pin('witness', 'problem', 'batchChainBreak', { seq: curB.seq }); }
+      if (curB.window[0] > prevB.window[1]) interiorGaps += Math.round((curB.window[0] - prevB.window[1]) / size);
+      else if (curB.window[0] < prevB.window[1]) pin('witness', 'problem', 'windowOverlap', { seq: curB.seq });
+    }
+    var declaredGaps = Array.isArray(pkg.gaps) ? pkg.gaps.length : 0;
+    var totalGaps = Math.max(interiorGaps, declaredGaps);
+    if (totalGaps > 0) {
+      var firstGap = declaredGaps && pkg.gaps[0] && Array.isArray(pkg.gaps[0].window) ? pkg.gaps[0].window[0] : null;
+      pin('witness', 'problem', 'gaps', { n: totalGaps, first: firstGap });
+    }
+    if (declaredGaps < interiorGaps) pin('witness', 'problem', 'gapsDeclaredMismatch', { declared: declaredGaps, found: interiorGaps });
+    if (!chainContinuous && pkg.batchChainOk === true) pin('witness', 'problem', 'chainDeclaredMismatch', {});
+    var edgeWindows = 0;
+    if (Array.isArray(pkg.covered) && isInt(pkg.covered[0]) && isInt(pkg.covered[1])) {
+      if (pkg.batches.length === 0) edgeWindows = Math.round((pkg.covered[1] - pkg.covered[0]) / size);
+      else edgeWindows = Math.round((pkg.batches[0].window[0] - pkg.covered[0]) / size) +
+        Math.round((pkg.covered[1] - pkg.batches[pkg.batches.length - 1].window[1]) / size);
+    }
+    if (edgeWindows > 0) {
+      var tot = pkg.totals || {};
+      pin('witness', 'note', 'edgeWindows', { n: edgeWindows, before: tot.windowsBeforeService, notClosed: tot.windowsNotClosed });
+    }
+
+    /* --- quién firma --- */
+    var pubkeys = {};
+    var pubkeyCount = 0;
+    for (var pi = 0; pi < pkg.batches.length; pi++) {
+      var evp = pkg.batches[pi].event && pkg.batches[pi].event.pubkey;
+      if (typeof evp === 'string' && !hasOwn(pubkeys, evp)) { pubkeys[evp] = 1; pubkeyCount++; }
+    }
+    var signer = pubkeyCount === 1 ? Object.keys(pubkeys)[0] : null;
+    if (pubkeyCount > 1) pin('pubkey', 'problem', 'mixedPubkeys', { n: pubkeyCount });
+    if (expected) {
+      if (signer && signer !== expected) pin('pubkey', 'problem', 'pubkeyMismatch', {});
+      else if (signer) pin('pubkey', 'note', 'pubkeyMatches', {});
+    } else if (signer) {
+      pin('pubkey', 'note', 'pubkeyNotChecked', {});
+    }
+    if (signer && typeof pkg.agentPubkey === 'string' && pkg.agentPubkey !== signer) {
+      pin('pubkey', 'problem', 'declaredPubkeyMismatch', {});
+    }
+
+    /* --- por lote --- */
+    var expectedPrev = pkg.precedingReceiptHash;
+    var lastSeq = null;
+    var rows = [];
+    var totalReceipts = 0;
+    var anyTsa = false;
+    var anyBitcoin = false;
+    for (var b = 0; b < pkg.batches.length; b++) {
+      var batch = pkg.batches[b];
+      var row = { seq: batch.seq, window: batch.window, count: batch.count, delivered: 0, root: batch.root, sig: null, rootOk: null, tsa: 'missing', tsaTime: null, ots: 'missing' };
+      var receipts = batch.receipts;
+      row.delivered = receipts.length;
+      totalReceipts += receipts.length;
+
+      /* evento firmado */
+      if (!batch.event || typeof batch.event !== 'object') {
+        pin('witness', 'problem', 'noEvent', { seq: batch.seq });
+      } else {
+        var ev = batch.event;
+        if (ev.kind !== BATCH_KIND) pin('witness', 'problem', 'wrongKind', { seq: batch.seq, kind: ev.kind });
+        // El id se recalcula desde el contenido; la firma se comprueba contra el id RECALCULADO,
+        // no contra el que trae el fichero. Verificando sobre el id recalculado, un evento
+        // reescrito falla en las dos cosas.
+        var computedId = computeEventId(ev);
+        if (computedId !== ev.id) pin('witness', 'problem', 'eventId', { seq: batch.seq });
+        if (batch.eventId !== ev.id) pin('witness', 'problem', 'eventIdMismatch', { seq: batch.seq });
+        if (checkSignatures) {
+          row.sig = C.schnorrVerify(ev.sig, computedId, ev.pubkey);
+          if (!row.sig) pin('witness', 'problem', 'signature', { seq: batch.seq });
+        }
+        // La raíz del lote viaja en `content`; el resto, en etiquetas: v, seq, prev, window,
+        // policy y count. Todo ello está cubierto por el id y por la firma.
+        if (ev.content !== batch.root) pin('inclusion', 'problem', 'eventRoot', { seq: batch.seq });
+        var vTag = tagValue(ev, 'v');
+        var seqTag = tagValue(ev, 'seq');
+        var prevTag = tagValue(ev, 'prev');
+        var winTag = tagValue(ev, 'window');
+        var policyTag = tagValue(ev, 'policy');
+        var countTag = tagValue(ev, 'count');
+        // Las etiquetas del formato son únicas: con dos ["seq", …] cada verificador podría leer
+        // un valor distinto del mismo evento firmado. Y el evento se fecha al cerrar la ventana,
+        // nunca antes de que termine.
+        for (var ft = 0; ft < BATCH_TAGS.length; ft++) {
+          if (tagCount(ev, BATCH_TAGS[ft]) > 1) pin('witness', 'problem', 'eventDupTag', { seq: batch.seq, tag: BATCH_TAGS[ft] });
+        }
+        if (typeof ev.created_at !== 'number' || ev.created_at < batch.window[1]) {
+          pin('witness', 'problem', 'eventCreatedAt', { seq: batch.seq });
+        }
+        if (!vTag || vTag[1] !== '1') pin('witness', 'problem', 'eventVersion', { seq: batch.seq, v: vTag && vTag[1] });
+        if (!seqTag || Number(seqTag[1]) !== batch.seq) pin('witness', 'problem', 'eventSeq', { seq: batch.seq });
+        if (!prevTag || prevTag[1] !== batch.prevRoot) pin('witness', 'problem', 'eventPrev', { seq: batch.seq });
+        if (!winTag || Number(winTag[1]) !== batch.window[0] || Number(winTag[2]) !== batch.window[1]) {
+          pin('witness', 'problem', 'eventWindow', { seq: batch.seq });
+        }
+        if (!policyTag || policyTag[1] !== batch.policy) pin('witness', 'problem', 'eventPolicy', { seq: batch.seq });
+        if (!countTag || !C.isHex64(batch.countSalt) || countTag[1] !== commitCount(batch.count, batch.countSalt)) {
+          pin('count', 'problem', 'countCommit', { seq: batch.seq, count: batch.count });
+        }
+      }
+
+      /* recuento revelado */
+      if (receipts.length !== batch.count) {
+        pin('count', 'problem', 'countMismatch', { seq: batch.seq, delivered: receipts.length, committed: batch.count });
+      }
+
+      /* esquema de cada recibo */
+      var wellFormed = [];
+      for (var k = 0; k < receipts.length; k++) {
+        var why = receiptProblem(receipts[k]);
+        if (why) pin('schema', 'problem', 'badReceipt', { seq: receipts[k] && receipts[k].seq, why: why });
+        else wellFormed.push(receipts[k]);
+      }
+
+      /* raíz recalculada; solo si cuadra tiene sentido mirar cada prueba */
+      var hashes = [];
+      for (k = 0; k < wellFormed.length; k++) hashes.push(receiptHash(wellFormed[k]));
+      var recomputed = merkleRoot(hashes);
+      row.rootOk = wellFormed.length === receipts.length && recomputed === batch.root;
+      if (!row.rootOk) {
+        pin('inclusion', 'problem', 'rootMismatch', { seq: batch.seq, recomputed: recomputed, published: batch.root });
+      } else {
+        for (k = 0; k < batch.proofs.length; k++) {
+          var pr = batch.proofs[k];
+          if (!pr || !pr.proof) { pin('inclusion', 'problem', 'proofFails', { seq: pr && pr.receiptSeq }); continue; }
+          if (pr.proof.size !== batch.count) pin('inclusion', 'problem', 'proofSize', { seq: pr.receiptSeq, size: pr.proof.size, count: batch.count });
+          else if (!verifyInclusion(pr.receiptHash, pr.proof, batch.root)) pin('inclusion', 'problem', 'proofFails', { seq: pr.receiptSeq });
+        }
+      }
+
+      /* cadena de recibos, atravesando los lotes */
+      for (k = 0; k < wellFormed.length; k++) {
+        var r = wellFormed[k];
+        if (r.ts < batch.window[0] || r.ts >= batch.window[1]) pin('chain', 'problem', 'tsOutOfWindow', { seq: r.seq, batch: batch.seq });
+        if (lastSeq !== null && r.seq !== lastSeq + 1) pin('chain', 'problem', 'receiptSeqJump', { from: lastSeq, to: r.seq });
+        if (expectedPrev !== null && expectedPrev !== undefined && r.prev !== expectedPrev) pin('chain', 'problem', 'prevMismatch', { seq: r.seq });
+        expectedPrev = receiptHash(r);
+        lastSeq = r.seq;
+      }
+
+      /* sello RFC 3161: se lee del token, no del JSON */
+      if (batch.tsaTokenDer === null) {
+        pin('tsa', 'warning', 'noTsa', { seq: batch.seq });
+      } else {
+        var parsedTsa = null;
+        try {
+          parsedTsa = parseTsaToken(C.fromHex(batch.tsaTokenDer));
+        } catch (err) {
+          pin('tsa', 'problem', 'tsaUnparseable', { seq: batch.seq });
+          row.tsa = 'bad';
+        }
+        if (parsedTsa) {
+          anyTsa = true;
+          row.tsaTime = parsedTsa.genTime;
+          if (parsedTsa.imprintHex !== batch.eventId) { pin('tsa', 'problem', 'tsaImprint', { seq: batch.seq }); row.tsa = 'bad'; }
+          if (batch.tsaGenTime !== null && batch.tsaGenTime !== parsedTsa.genTime) {
+            pin('tsa', 'problem', 'tsaGenTimeMismatch', { seq: batch.seq, declared: batch.tsaGenTime, token: parsedTsa.genTime });
+            row.tsa = 'bad';
+          }
+          var gap = parsedTsa.genTime - batch.window[1];
+          if (gap < -CLOCK_SKEW_TOLERANCE) { pin('tsa', 'problem', 'tsaBeforeClose', { seq: batch.seq, gap: -gap }); row.tsa = 'bad'; }
+          else if (gap < 0) pin('tsa', 'warning', 'tsaSlightlyEarly', { seq: batch.seq, gap: -gap });
+          else if (gap > maxGap) { pin('tsa', 'problem', 'tsaLate', { seq: batch.seq, gap: gap, max: maxGap }); row.tsa = 'bad'; }
+          if (row.tsa !== 'bad') row.tsa = 'consistent';
+        }
+      }
+
+      /* OpenTimestamps: el fichero se lee; "completo" es que haya atestación Bitcoin en él */
+      if (batch.ots === null) {
+        pin('ots', 'warning', 'otsMissing', { seq: batch.seq });
+      } else {
+        try {
+          var o = inspectOts(C.fromHex(batch.ots));
+          if (o.digestHex !== batch.eventId) { pin('ots', 'problem', 'otsDigest', { seq: batch.seq }); row.ots = 'bad'; }
+          if (batch.otsComplete && !o.hasBitcoin) { pin('ots', 'problem', 'otsNotComplete', { seq: batch.seq }); row.ots = 'bad'; }
+          else if (!o.hasBitcoin) { pin('ots', 'warning', 'otsPending', { seq: batch.seq }); if (row.ots !== 'bad') row.ots = 'pending'; }
+          else {
+            anyBitcoin = true;
+            if (!batch.otsComplete) pin('ots', 'warning', 'otsDeclaredPending', { seq: batch.seq });
+            if (row.ots !== 'bad') row.ots = 'attested';
+          }
+        } catch (err) {
+          pin('ots', 'problem', 'otsUnparseable', { seq: batch.seq });
+          row.ots = 'bad';
+        }
+      }
+
+      rows.push(row);
+    }
+    if (anyTsa) pin('tsa', 'note', 'tsaCmsNotChecked', {});
+    if (anyBitcoin) pin('ots', 'note', 'otsBlockNotChecked', {});
+
+    return finish(pkg, findings, perCheck, rows, totalReceipts, checkSignatures);
+  }
+
+  function finish(pkg, findings, perCheck, rows, totalReceipts, checkSignatures) {
+    var ids = ['schema', 'chain', 'inclusion', 'witness', 'pubkey', 'count', 'tsa', 'ots'];
+    var count = function (id, level) {
+      var n = 0;
+      for (var i2 = 0; i2 < perCheck[id].length; i2++) if (perCheck[id][i2].level === level) n++;
+      return n;
+    };
+    var statusOf = function (id) {
+      if (count(id, 'problem') > 0) return 'fail';
+      if (count(id, 'warning') > 0) return 'warn';
+      return 'ok';
+    };
+    var checks = [];
+    for (var c = 0; c < ids.length; c++) checks.push({ id: ids[c], status: statusOf(ids[c]), findings: perCheck[ids[c]] });
+    var problems = findings.filter(function (f) { return f.level === 'problem'; });
+    var warnings = findings.filter(function (f) { return f.level === 'warning'; });
+    var notes = findings.filter(function (f) { return f.level === 'note'; });
+    return {
+      ok: problems.length === 0,
+      signaturesChecked: checkSignatures,
+      problems: problems,
+      warnings: warnings,
+      notes: notes,
+      findings: findings,
+      checks: checks,
+      batches: rows,
+      totals: {
+        batches: pkg.batches.length,
+        receipts: totalReceipts,
+        empty: rows.filter(function (x) { return x.count === 0; }).length,
+      },
+      pkg: pkg,
+    };
+  }
+
+  root.PrecintumChecks = {
+    verifyPackage: verifyPackage,
+    receiptHash: receiptHash,
+    merkleRoot: merkleRoot,
+    verifyInclusion: verifyInclusion,
+    commitCount: commitCount,
+    computeEventId: computeEventId,
+    canonicalize: canonicalize,
+    receiptProblem: receiptProblem,
+    decodePubkey: decodePubkey,
+    parseTsaToken: parseTsaToken,
+    inspectOts: inspectOts,
+    EMPTY_ROOT: EMPTY_ROOT,
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+<script>/* Paquete de evidencia de ejemplo, generado por precintum/scripts/make-web-example.ts.
+   Es un paquete real y válido: hashes, cadena, árbol, compromisos de recuento, ids y firmas
+   Schnorr son auténticos. Los tokens RFC 3161 y los ficheros .ots tienen el formato real, con
+   una firma CMS de prueba y una atestación Bitcoin ficticia: es justo lo que el verificador no
+   puede comprobar sin DSS ni un nodo, y lo dice en sus notas. */
+globalThis.PRECINTUM_EXAMPLE = {"format":"precintum/export/v1","requested":[1788436800,1788447600],"covered":[1788436800,1788447600],"windowSeconds":3600,"anchorMaxGapSeconds":86400,"agentPubkey":"9149ca5e1919eb6269283662b3c1baf170dfd5619ab6b80ac5ee383bc17f77eb","precedingReceiptHash":"7e6c350b2f5acef23c91fad3a671761d6ac9d4f23e22a4a58b140140ddcd61fd","serviceStart":1788436800,"serviceEnd":1788447600,"batches":[{"seq":1,"root":"17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1","prevRoot":"7e6c350b2f5acef23c91fad3a671761d6ac9d4f23e22a4a58b140140ddcd61fd","window":[1788436800,1788440400],"policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","count":4,"countSalt":"c1cc35077f7014c8f4c3601e0695c5c1f4849a25ea244009a1bcf6ce77b6f0db","eventId":"fac3aab6e8861908df564d832c63dbba084f7c5be6b6d8244284105275ca3d58","event":{"id":"fac3aab6e8861908df564d832c63dbba084f7c5be6b6d8244284105275ca3d58","pubkey":"9149ca5e1919eb6269283662b3c1baf170dfd5619ab6b80ac5ee383bc17f77eb","created_at":1788440400,"kind":7676,"tags":[["v","1"],["seq","1"],["prev","7e6c350b2f5acef23c91fad3a671761d6ac9d4f23e22a4a58b140140ddcd61fd"],["window","1788436800","1788440400"],["policy","1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f"],["count","de843b0290ae3381555b81ac0edc5b20fd9346a81b8a82e9425c2152f8fda484"]],"content":"17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1","sig":"e14f51fd5c68bc787e8da85d96e4270fa91f635f16fdba048beb250eab712c39c1d5d2316fe01a74dd8e4b4f797673bae318f3877c352e8558cf27d92e90bbd6"},"tsaTokenDer":"30818c06092a864886f70d010702a07f307d020103310d300b06096086480165030402013067060b2a864886f70d0109100104a05804563054020101060a2b06010401868d1f0101302f300b06096086480165030402010420fac3aab6e8861908df564d832c63dbba084f7c5be6b6d8244284105275ca3d58020107180f32303236303930333135303030375a3100","tsaGenTime":1788447607,"ots":"004f70656e54696d657374616d7073000050726f6f6600bf89e2e884e892940108fac3aab6e8861908df564d832c63dbba084f7c5be6b6d8244284105275ca3d5808000588960d73d7190103a0f736","otsComplete":true,"receipts":[{"v":1,"seq":1,"prev":"7e6c350b2f5acef23c91fad3a671761d6ac9d4f23e22a4a58b140140ddcd61fd","nonce":"9cffdb7f4ec2064126bed43d23259cb8de32b3fc3da9d4b778096e760188827f","policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","verifier":"d898960fa70ef724406141049a139d7f8edc62a211a6cbb7a89fb2689c177fad","result":"over_18","ts":1788437040},{"v":1,"seq":2,"prev":"f0f0c57493787315cb98c7ae67fb4ecf8c1de198a8507f7a11c1f581ad59bcb2","nonce":"3500484f3a743ef6bd428125208c2cbc2fcb527a9d45fb93f633d6a73ea429be","policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","verifier":"d898960fa70ef724406141049a139d7f8edc62a211a6cbb7a89fb2689c177fad","result":"under_18","ts":1788437820},{"v":1,"seq":3,"prev":"e3a6d6d6791ce500de921d1f65301a28a0be16a100e42adcec3cde203502e970","nonce":"612a479d418513b312da71a26cc39b249094af9487df379f75769ec826d9d7aa","policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","verifier":"d898960fa70ef724406141049a139d7f8edc62a211a6cbb7a89fb2689c177fad","result":"over_18","ts":1788438720},{"v":1,"seq":4,"prev":"99d4ac1d5ace3da0150e5e3cb42916608b708d61cc10fa4621a2bd9aa5029604","nonce":"2275cbeade38925b7bcd1426664c7d7f857e6db791eeadb63e4b66866cd30df0","policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","verifier":"d898960fa70ef724406141049a139d7f8edc62a211a6cbb7a89fb2689c177fad","result":"error","ts":1788439260}],"proofs":[{"receiptSeq":1,"receiptHash":"f0f0c57493787315cb98c7ae67fb4ecf8c1de198a8507f7a11c1f581ad59bcb2","batchSeq":1,"root":"17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1","proof":{"index":0,"size":4,"path":["cffd8701f65d778f83e463979f12c67d91bfd698a88a775a15aced6ddf080a03","e72a3a959526014d4ec0834ae359b013dc5b72dca6425341473c6ed758922cc9"]}},{"receiptSeq":2,"receiptHash":"e3a6d6d6791ce500de921d1f65301a28a0be16a100e42adcec3cde203502e970","batchSeq":1,"root":"17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1","proof":{"index":1,"size":4,"path":["77493740543c83a376f8f5d12af7bb46d75f4f8a18283790055fae55e6fa3d79","e72a3a959526014d4ec0834ae359b013dc5b72dca6425341473c6ed758922cc9"]}},{"receiptSeq":3,"receiptHash":"99d4ac1d5ace3da0150e5e3cb42916608b708d61cc10fa4621a2bd9aa5029604","batchSeq":1,"root":"17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1","proof":{"index":2,"size":4,"path":["7411c48c00e3d90414a2bdf8f7c6489bbf3d52bd4c0cc49109c703dc981cdd22","d8351c1682cf3c1db82a76de2f6472d726bf071f23a77f58c036279389f604ad"]}},{"receiptSeq":4,"receiptHash":"632c0ee222bf4eb8e9e330586b4414cacc9e582ee8cf9483f149bd352c530b4e","batchSeq":1,"root":"17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1","proof":{"index":3,"size":4,"path":["08798d80ff0a146b4e2d7f249eae060b755e932791892d889d37c09d568089f7","d8351c1682cf3c1db82a76de2f6472d726bf071f23a77f58c036279389f604ad"]}}]},{"seq":2,"root":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","prevRoot":"17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1","window":[1788440400,1788444000],"policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","count":0,"countSalt":"9c655c379dbeac65cdd12825951b2910168eefa792af89f4ab13af01a70513fc","eventId":"ca1e7f43e543f352c958a7297072b43f400a5ef354996fd00ca181ae8f314d49","event":{"id":"ca1e7f43e543f352c958a7297072b43f400a5ef354996fd00ca181ae8f314d49","pubkey":"9149ca5e1919eb6269283662b3c1baf170dfd5619ab6b80ac5ee383bc17f77eb","created_at":1788444000,"kind":7676,"tags":[["v","1"],["seq","2"],["prev","17070f4ecc677b736fe9b7594d80fee3179b7ec2ce1a51b53056c90dd016fbe1"],["window","1788440400","1788444000"],["policy","1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f"],["count","2034ed785e4afb6a1f3c2309fe28fbef66f30831a93c387bcb242e0ada0b676c"]],"content":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","sig":"414fa2836bcfcab654fec46ea0d41cbe9cefd8bc808832961481f90c4c1dc00ce491342fd9aafae2b2dbbcd0dc40e1139bd0b3feb0e2ab3f24347238a845033d"},"tsaTokenDer":"30818c06092a864886f70d010702a07f307d020103310d300b06096086480165030402013067060b2a864886f70d0109100104a05804563054020101060a2b06010401868d1f0101302f300b06096086480165030402010420ca1e7f43e543f352c958a7297072b43f400a5ef354996fd00ca181ae8f314d49020107180f32303236303930333135303030375a3100","tsaGenTime":1788447607,"ots":"004f70656e54696d657374616d7073000050726f6f6600bf89e2e884e892940108ca1e7f43e543f352c958a7297072b43f400a5ef354996fd00ca181ae8f314d4908000588960d73d7190103a0f736","otsComplete":true,"receipts":[],"proofs":[]},{"seq":3,"root":"e88a5bdf6026315b35ba4b155d37581e7093d2562088f8a64378e153850e3bfe","prevRoot":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","window":[1788444000,1788447600],"policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","count":1,"countSalt":"2b602db07217504b9599424ef1858be15405fb1dad437b0e1f409c1f657f567d","eventId":"e151cda467a13f2ff50e1e8271ba37c1cff425e8a64e99e2b0ad5df361bec2ec","event":{"id":"e151cda467a13f2ff50e1e8271ba37c1cff425e8a64e99e2b0ad5df361bec2ec","pubkey":"9149ca5e1919eb6269283662b3c1baf170dfd5619ab6b80ac5ee383bc17f77eb","created_at":1788447600,"kind":7676,"tags":[["v","1"],["seq","3"],["prev","e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],["window","1788444000","1788447600"],["policy","1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f"],["count","00c0e7cfbbac4dcd0bd8869b973d1f293f3bbb8a2b86aa8c140e87dcd1acc8fc"]],"content":"e88a5bdf6026315b35ba4b155d37581e7093d2562088f8a64378e153850e3bfe","sig":"21be0abf8cf2bd2b4176914de872c97791b4ae088c0b3bc7867dc0ff237bac05cb1c168703e3a7c76d3f2fbc6df262ce41e1a58ae294c4e5705f4bdda6dfed1e"},"tsaTokenDer":"30818c06092a864886f70d010702a07f307d020103310d300b06096086480165030402013067060b2a864886f70d0109100104a05804563054020101060a2b06010401868d1f0101302f300b06096086480165030402010420e151cda467a13f2ff50e1e8271ba37c1cff425e8a64e99e2b0ad5df361bec2ec020107180f32303236303930333135303030375a3100","tsaGenTime":1788447607,"ots":"004f70656e54696d657374616d7073000050726f6f6600bf89e2e884e892940108e151cda467a13f2ff50e1e8271ba37c1cff425e8a64e99e2b0ad5df361bec2ec08000588960d73d7190103a0f736","otsComplete":true,"receipts":[{"v":1,"seq":5,"prev":"632c0ee222bf4eb8e9e330586b4414cacc9e582ee8cf9483f149bd352c530b4e","nonce":"b97b5e681fa874497d53119b2cbe225c9fe2df70306848d99808c099949c75ea","policy":"1027bd716c3cca38b1eaad5bae0246e06cba9f82d350ef92f58e2ac9e9fb324f","verifier":"d898960fa70ef724406141049a139d7f8edc62a211a6cbb7a89fb2689c177fad","result":"over_18","ts":1788444720}],"proofs":[{"receiptSeq":5,"receiptHash":"b98fbb1b9b99404330c0a4b4020da6980926e97e2502bca0fcbbbe73494af849","batchSeq":3,"root":"e88a5bdf6026315b35ba4b155d37581e7093d2562088f8a64378e153850e3bfe","proof":{"index":0,"size":1,"path":[]}}]}],"gaps":[],"totals":{"batches":3,"receipts":5,"empty":1,"withoutTsa":0,"withoutOts":0,"windowsBeforeService":0,"windowsNotClosed":0},"batchChainOk":true,"notice":"Este paquete no contiene identificadores de persona, dispositivo, sesión ni transacción. Otros registros pueden permitir correlacionar hora y resultado. Permite comprobar la integridad y coherencia de la evidencia entregada; no acredita por sí solo que los hechos registrados ocurrieran ni que se registraran todos. La firma CMS del sello y su cadena hasta la lista de confianza de la UE se validan con DSS; contrastar el anclaje Bitcoin requiere un nodo o un explorador. Esas validaciones son externas a esta herramienta."};
+</script>
+<script>/**
+ * Interfaz del verificador. Todo el texto vive aquí, en inglés y en español; el motor de
+ * comprobaciones no produce texto, solo hallazgos con clave y parámetros.
+ */
+(function () {
+  'use strict';
+  var Checks = globalThis.PrecintumChecks;
+  var Crypto = globalThis.PrecintumCrypto;
+
+  /* ---------------- textos ---------------- */
+  var STR = {
+    en: {
+      kicker: 'Precintum · independent verifier',
+      title: 'Evidence package verifier',
+      lede: "Drop an evidence package exported with <code>precintum export</code> and this page recomputes every hash, root, inclusion proof and signature from scratch, without using the operator's software.",
+      privacy: 'Nothing leaves your browser. There is no server: the file is read and verified locally.',
+      dropTitle: 'Drop the package here',
+      dropHelp: 'A <code>.json</code> file produced by <code>precintum export --from … --to …</code>. Nothing is uploaded.',
+      idle: 'No package loaded yet. Drop one above, choose a file, or press “Load example package” to see a verified example.',
+      pick: 'Choose file…',
+      loadExample: 'Load example package',
+      optSigs: 'Verify Schnorr signatures (slower on large packages)',
+      optPubkey: 'Operator public key (npub or hex), from a source you trust',
+      checksTitle: 'Checks',
+      summaryTitle: 'Package',
+      limitsTitle: 'What this tool cannot verify',
+      batchesTitle: 'Batches',
+      batchesLede: 'One row per hourly window. An empty batch is a heartbeat: it records a window with no registered verifications.',
+      receiptsTitle: 'Receipts',
+      receiptsLede: 'Eight fields each, none of which identifies a person. The hash is recomputed here from the fields.',
+      fLocalT: 'Local verification.',
+      fLocal: 'This page contains its own SHA-256 and BIP-340 Schnorr implementations, in plain JavaScript with no external libraries, so that verifying does not require trusting a download, a server or the operator. The code is part of the Precintum repository and a test in that repository cross-checks it against the server implementation on every run.',
+      fScopeT: 'Scope.',
+      fScope: 'These results concern the integrity and consistency of the delivered records. Authenticating the TSA timestamp and the Bitcoin anchor requires external validation. The checks do not prove that the recorded events happened or that all events were recorded; that requires independent checks and the operator’s responsibility.',
+      fLegalT: 'Notice.',
+      fLegal: 'Statements about eIDAS, legal presumption or evidential value are informational, not legal advice, and should be reviewed by a qualified professional.',
+
+      verifying: 'Verifying…',
+      passBig: 'Package verified',
+      passSub: 'The delivered data passes the integrity checks. Review the notes and limits for signer identity, coverage and external anchor validation.',
+      warnBig: 'Verified, with warnings',
+      warnSub: 'The completed checks found no inconsistency. Review the warnings and limits for checks or evidence that remain incomplete.',
+      failBig: 'Verification failed',
+      failSub: 'At least one check does not recompute. The problems are listed below, with the exact batch or receipt.',
+      sigsSkipped: 'Signatures were not verified: the check was turned off.',
+      exampleName: 'example package (embedded)',
+      fBatches: 'batches',
+      fReceipts: 'receipts',
+      fEmpty: 'empty (heartbeats)',
+      elapsed: 'verified in',
+      fatalNotJson: 'That file is not JSON, or could not be read.',
+      fatalNotPackage: 'That JSON is not an Precintum evidence package (expected format precintum/export/v1).',
+
+      cSchema: 'Receipts well formed, with no identifier of person, session, device or transaction',
+      cSchemaD: 'Strict eight-field schema: version, sequence, previous hash, random nonce, policy, verifier, result and minute-truncated time. Nothing else is allowed.',
+      cChain: 'Chain intact and complete',
+      cChainD: 'Every receipt carries the hash of the previous one, sequence numbers run without gaps, and each timestamp falls inside its batch window.',
+      cInclusion: 'Each receipt included in its batch root',
+      cInclusionD: 'Merkle tree per RFC 6962 recomputed from the receipts, and each inclusion proof checked per RFC 9162.',
+      cWitness: 'Signed batch events consistent, one root per hour',
+      cWitnessD: 'Event id recomputed from the content, Schnorr BIP-340 signature verified against it, tags matching the delivered data, and no missing window inside the service period.',
+      cCount: 'Count commitment opens to the delivered receipts',
+      cCountD: 'The salt in the package opens the commitment published in the signed event to exactly the number of receipts delivered.',
+      cPubkey: 'One signing key, the operator’s',
+      cPubkeyD: 'All batches signed by the same key, compared with the operator key you provide. Without it, the signatures only prove that the package is consistent with itself.',
+      cTsa: 'RFC 3161 token read and consistent',
+      cTsaD: 'The token is parsed: its imprint must be the batch event id and its time must fall between the close of the window and the anchoring maximum. The CMS signature and the certificate chain are validated with DSS, not here.',
+      cOts: 'Bitcoin anchor file read and consistent',
+      cOtsD: 'The .ots file is parsed: header, digest equal to the event id and presence of a Bitcoin attestation when the package declares it complete. Following it to a block header needs a Bitcoin node.',
+
+      lPubkey: '<b>Who owns the signing key.</b> The page checks that one key signs everything and that it matches the npub you type. Which npub belongs to the operator is something you learn from a contract, a register or the relays, never from the package itself.',
+      lTsa: '<b>The TSA seal signature.</b> The token is read (imprint, time, anchoring window), but validating its CMS signature and the certificate chain against the EU trusted list requires DSS.',
+      lOts: '<b>The Bitcoin anchor.</b> The .ots file is read (digest, attestation), but following its path to the Merkle root of a block header requires a Bitcoin node or a block explorer.',
+      lRelays: '<b>What the relays hold today.</b> This page does not query the witnesses. Independent auditor lookup against the relays is planned.',
+      lCoverage: '<b>Coverage.</b> These checks concern the delivered evidence. Establishing that all events were recorded requires independent checks and the operator’s declared responsibility.',
+
+      thSeq: 'batch', thWindow: 'window (UTC)', thCount: 'committed', thDelivered: 'delivered',
+      thRoot: 'root', thSig: 'signature', thRootOk: 'root', thTsa: 'seal', thOts: 'anchor',
+      thRSeq: 'receipt', thTime: 'time (UTC)', thResult: 'result', thHash: 'recomputed hash', thBatch: 'batch', thPrev: 'links to',
+      yes: 'ok', no: 'fails', none: '—', pending: 'pending', missing: 'none', complete: 'in a block', consistent: 'consistent', attested: 'attested', bad: 'fails', declared: 'declared', matches: 'matches', unchecked: 'not checked', mixed: 'mixed keys',
+      showingFirst: 'Showing the first {n} receipts of {total}. The verification covered all of them.',
+      linkOk: 'previous ok', linkKo: 'broken',
+
+      gaps: '{n} window(s) inside the service period have no batch, not even an empty one. The first starts at {first}. Completeness is broken.',
+      batchSeqJump: 'Jump in the batch sequence: from {from} to {to}.',
+      batchChainBreak: 'Batch {seq} does not link to the root of the previous one.',
+      windowJump: 'Batch {seq} does not start where the previous window ended.',
+      noEvent: 'Batch {seq} has no signed event.',
+      wrongKind: 'Batch {seq}: the event is kind {kind}, expected 7676.',
+      eventId: 'Batch {seq}: the event id does not match its content. The event was rewritten.',
+      eventIdMismatch: 'Batch {seq}: the package names an event id different from the event it carries.',
+      signature: 'Batch {seq}: the Schnorr signature does not verify.',
+      eventRoot: 'Batch {seq}: the root in the signed event is not the delivered root.',
+      eventVersion: 'Batch {seq}: unexpected batch format version ({v}).',
+      eventSeq: 'Batch {seq}: the sequence tag does not match.',
+      eventPrev: 'Batch {seq}: the previous-root tag does not match.',
+      eventWindow: 'Batch {seq}: the window in the signed event is not the delivered one.',
+      eventDupTag: 'Batch {seq}: the signed event repeats the {tag} tag; two verifiers could read different values.',
+      eventCreatedAt: 'Batch {seq}: the event is dated before the end of its window.',
+      eventPolicy: 'Batch {seq}: the policy tag does not match.',
+      countCommit: 'Batch {seq}: the published count commitment does not open to {count} with the salt in the package.',
+      countMismatch: 'Batch {seq}: {delivered} receipts delivered, the commitment says {committed}.',
+      badReceipt: 'Receipt {seq} does not fit the schema ({why}).',
+      rootMismatch: 'Batch {seq}: recomputed root {recomputed} does not match the published root {published}. Some receipt in the window was changed, removed or added.',
+      proofFails: 'The inclusion proof for receipt {seq} does not verify.',
+      tsOutOfWindow: 'Receipt {seq}: its time falls outside the window of batch {batch}.',
+      receiptSeqJump: 'Gap in the receipt chain: from {from} to {to}.',
+      prevMismatch: 'Receipt {seq}: its previous-hash field is not the hash of the receipt before it.',
+      noTsa: 'Batch {seq} has no RFC 3161 timestamp yet.',
+      tsaBeforeClose: 'Batch {seq}: the seal is {gap} s earlier than the close of its window, which is impossible.',
+      otsPending: 'Batch {seq}: the Bitcoin anchor is still pending at the calendar.',
+      otsMissing: 'Batch {seq}: the Bitcoin anchor was never submitted.',
+      badWindowSeconds: 'The package declares an invalid window size.',
+      badRequestedRange: 'The requested range must have two valid whole-second dates in increasing order.',
+      badCoveredRange: 'The delivered range must have two valid whole-second dates in increasing order.',
+      rangeCoverage: 'The delivered range does not cover the requested range.',
+      rangeAlignment: 'The delivered range is not aligned to complete windows.',
+      batchOutsideRange: 'Batch {seq}: its window lies outside the delivered range.',
+      badTypes: 'Batch {seq}: fields with invalid types (numbers expected). The package was edited by hand or is corrupt.',
+      windowSize: 'Batch {seq}: its window is not {size} seconds long.',
+      windowOverlap: 'Batch {seq}: its window overlaps the previous one.',
+      gapsDeclaredMismatch: 'The package declares {declared} gap(s) but {found} are found between the delivered batches. The package hides missing windows.',
+      chainDeclaredMismatch: 'The package declares the batch chain continuous and it is not.',
+      edgeWindows: '{n} window(s) at the edges of the range have no batch. The package declares them earlier than the service start ({before}) or not yet closed ({notClosed}); that cannot be checked offline. Compare with the relays.',
+      badExpectedPubkey: 'The operator key you typed is not a valid npub or 64-hex public key.',
+      mixedPubkeys: 'The batches are signed by {n} different keys. One agent signs with one key; a key change must be announced in the key directory.',
+      pubkeyMismatch: 'The key that signs the batches is not the operator key you provided.',
+      pubkeyMatches: 'The signing key matches the operator key you provided.',
+      pubkeyNotChecked: 'The signing key has not been compared with any external source: the signatures prove internal consistency, not who signed. Type the operator’s npub above, obtained from a source you trust.',
+      declaredPubkeyMismatch: 'The key the package declares as the agent’s is not the key that signs the batches.',
+      proofSize: 'Receipt {seq}: its inclusion proof declares a tree of {size} leaves and the batch has {count}.',
+      tsaUnparseable: 'Batch {seq}: the RFC 3161 token cannot be read as a TimeStampToken.',
+      tsaImprint: 'Batch {seq}: the imprint inside the RFC 3161 token is not the id of the batch event. The seal belongs to something else.',
+      tsaGenTimeMismatch: 'Batch {seq}: the package declares the seal time {declared} but the token says {token}.',
+      tsaSlightlyEarly: 'Batch {seq}: the seal is {gap} s earlier than the close of its window; tolerated as clock skew.',
+      tsaLate: 'Batch {seq}: the seal arrives {gap} s after the close, above the maximum of {max} s. Possible backdating.',
+      tsaCmsNotChecked: 'The RFC 3161 tokens were read and are consistent with the events and the anchoring window. Their CMS signature and the TSA certificate chain are validated with DSS, not here.',
+      otsUnparseable: 'Batch {seq}: the .ots file cannot be read.',
+      otsDigest: 'Batch {seq}: the .ots file is not for the id of this event.',
+      otsNotComplete: 'Batch {seq}: the package declares the Bitcoin anchor complete and the .ots file has no Bitcoin attestation.',
+      otsDeclaredPending: 'Batch {seq}: the package declares the Bitcoin anchor pending although the .ots file already carries a Bitcoin attestation.',
+      otsBlockNotChecked: 'The Bitcoin attestations are present in the .ots files. Following them to a block header needs a Bitcoin node, so it is not done here.',
+    },
+    es: {
+      kicker: 'Precintum · verificador independiente',
+      title: 'Verificador de paquetes de evidencia',
+      lede: 'Suelta un paquete de evidencia exportado con <code>precintum export</code> y esta página recalcula desde cero cada hash, raíz, prueba de inclusión y firma, sin usar el software del operador.',
+      privacy: 'Nada sale de tu navegador. No hay servidor: el fichero se lee y se verifica en local.',
+      dropTitle: 'Suelta el paquete aquí',
+      dropHelp: 'Un fichero <code>.json</code> producido por <code>precintum export --desde … --hasta …</code>. No se sube nada.',
+      idle: 'Aún no hay ningún paquete. Suelta uno arriba, elige un fichero o pulsa «Cargar paquete de ejemplo» para ver un ejemplo verificado.',
+      pick: 'Elegir fichero…',
+      loadExample: 'Cargar paquete de ejemplo',
+      optSigs: 'Verificar las firmas Schnorr (más lento en paquetes grandes)',
+      optPubkey: 'Clave pública del operador (npub o hex), de una fuente fiable',
+      checksTitle: 'Comprobaciones',
+      summaryTitle: 'Paquete',
+      limitsTitle: 'Lo que esta herramienta no puede verificar',
+      batchesTitle: 'Lotes',
+      batchesLede: 'Una fila por ventana horaria. Un lote vacío es un latido: registra una ventana sin verificaciones registradas.',
+      receiptsTitle: 'Recibos',
+      receiptsLede: 'Ocho campos cada uno, y ninguno identifica a una persona. El hash se recalcula aquí a partir de los campos.',
+      fLocalT: 'Verificación local.',
+      fLocal: 'Esta página lleva su propia implementación de SHA-256 y de Schnorr BIP-340, en JavaScript y sin librerías externas, para que verificar no exija confiar en una descarga, en un servidor ni en el operador. El código forma parte del repositorio de Precintum y un test lo contrasta contra la implementación del servidor en cada ejecución.',
+      fScopeT: 'Alcance.',
+      fScope: 'Estos resultados se refieren a la integridad y coherencia de los registros entregados. Autenticar el sello de la TSA y el anclaje Bitcoin requiere validación externa. Las comprobaciones no prueban que los hechos registrados ocurrieran ni que se registraran todos; eso requiere controles independientes y la responsabilidad del operador.',
+      fLegalT: 'Aviso.',
+      fLegal: 'Lo que aquí se diga sobre eIDAS, presunción legal o valor probatorio es informativo, no asesoramiento jurídico, y debe revisarlo un profesional cualificado.',
+
+      verifying: 'Verificando…',
+      passBig: 'Paquete verificado',
+      passSub: 'Los datos entregados pasan las comprobaciones de integridad. Revisa las notas y límites sobre identidad del firmante, cobertura y validación externa de las anclas.',
+      warnBig: 'Verificado, con avisos',
+      warnSub: 'Las comprobaciones realizadas no detectaron incoherencias. Revisa los avisos y límites de las comprobaciones o pruebas que siguen incompletas.',
+      failBig: 'La verificación falla',
+      failSub: 'Al menos una comprobación no recalcula. Los problemas están abajo, con el lote o el recibo exacto.',
+      sigsSkipped: 'Las firmas no se han verificado: la comprobación está desactivada.',
+      exampleName: 'paquete de ejemplo (incrustado)',
+      fBatches: 'lotes',
+      fReceipts: 'recibos',
+      fEmpty: 'vacíos (latidos)',
+      elapsed: 'verificado en',
+      fatalNotJson: 'Ese fichero no es JSON, o no se ha podido leer.',
+      fatalNotPackage: 'Ese JSON no es un paquete de evidencia de Precintum (se esperaba el formato precintum/export/v1).',
+
+      cSchema: 'Recibos bien formados, sin identificadores de persona, sesión, dispositivo ni transacción',
+      cSchemaD: 'Esquema estricto de ocho campos: versión, orden, hash anterior, nonce aleatorio, política, verificador, resultado y hora truncada al minuto. No se admite nada más.',
+      cChain: 'Cadena íntegra y completa',
+      cChainD: 'Cada recibo lleva el hash del anterior, la numeración va sin huecos y cada hora cae dentro de la ventana de su lote.',
+      cInclusion: 'Cada recibo incluido en la raíz de su lote',
+      cInclusionD: 'Árbol de Merkle según RFC 6962 recalculado desde los recibos, y cada prueba de inclusión comprobada según RFC 9162.',
+      cWitness: 'Eventos de lote firmados y coherentes, una raíz por hora',
+      cWitnessD: 'Id del evento recalculado desde su contenido, firma Schnorr BIP-340 verificada contra él, etiquetas que coinciden con lo entregado y ninguna ventana ausente dentro del periodo de servicio.',
+      cCount: 'El compromiso de recuento se abre a los recibos entregados',
+      cCountD: 'La sal del paquete abre el compromiso publicado en el evento firmado exactamente al número de recibos entregados.',
+      cPubkey: 'Una sola clave firmante, la del operador',
+      cPubkeyD: 'Todos los lotes firmados por la misma clave, contrastada con la del operador que indiques. Sin ella, las firmas solo prueban que el paquete es coherente consigo mismo.',
+      cTsa: 'Token RFC 3161 leído y coherente',
+      cTsaD: 'El token se parsea: su imprint debe ser el id del evento de lote y su hora debe caer entre el cierre de la ventana y el máximo de anclaje. La firma CMS y la cadena de certificados se validan con DSS, no aquí.',
+      cOts: 'Fichero de anclaje en Bitcoin leído y coherente',
+      cOtsD: 'El fichero .ots se parsea: cabecera, digest igual al id del evento y presencia de una atestación Bitcoin cuando el paquete lo declara completo. Seguirlo hasta la cabecera de un bloque exige un nodo.',
+
+      lPubkey: '<b>De quién es la clave que firma.</b> La página comprueba que una sola clave firma todo y que coincide con el npub que escribas. Qué npub es del operador se sabe por un contrato, un registro o los relays, nunca por el propio paquete.',
+      lTsa: '<b>La firma del sello de la TSA.</b> El token se lee (imprint, hora, ventana de anclaje), pero validar su firma CMS y la cadena de certificados contra la lista de confianza de la UE exige DSS.',
+      lOts: '<b>El anclaje en Bitcoin.</b> El fichero .ots se lee (digest, atestación), pero seguir su ruta hasta la raíz Merkle de la cabecera de un bloque exige un nodo de Bitcoin o un explorador.',
+      lRelays: '<b>Qué conservan hoy los relays.</b> Esta página no consulta a los testigos. La consulta independiente del auditor a los relays está prevista como trabajo futuro.',
+      lCoverage: '<b>La cobertura.</b> Estas comprobaciones se refieren a la evidencia entregada. Determinar que se registraron todos los hechos requiere controles independientes y la responsabilidad declarada del operador.',
+
+      thSeq: 'lote', thWindow: 'ventana (UTC)', thCount: 'comprometido', thDelivered: 'entregados',
+      thRoot: 'raíz', thSig: 'firma', thRootOk: 'raíz', thTsa: 'sello', thOts: 'ancla',
+      thRSeq: 'recibo', thTime: 'hora (UTC)', thResult: 'resultado', thHash: 'hash recalculado', thBatch: 'lote', thPrev: 'enlace',
+      yes: 'ok', no: 'falla', none: '—', pending: 'pendiente', missing: 'sin enviar', complete: 'en un bloque', consistent: 'coherente', attested: 'atestado', bad: 'falla', declared: 'declarado', matches: 'coincide', unchecked: 'sin contrastar', mixed: 'claves mezcladas',
+      showingFirst: 'Se muestran los primeros {n} recibos de {total}. La verificación cubrió todos.',
+      linkOk: 'anterior ok', linkKo: 'roto',
+
+      gaps: '{n} ventana(s) del periodo de servicio no tienen lote, ni siquiera vacío. La primera empieza en {first}. La completitud está rota.',
+      batchSeqJump: 'Salto en la secuencia de lotes: del {from} al {to}.',
+      batchChainBreak: 'El lote {seq} no enlaza con la raíz del anterior.',
+      windowJump: 'El lote {seq} no empieza donde acabó la ventana anterior.',
+      noEvent: 'El lote {seq} no trae evento firmado.',
+      wrongKind: 'Lote {seq}: el evento es de kind {kind}, se esperaba 7676.',
+      eventId: 'Lote {seq}: el id del evento no corresponde a su contenido. El evento se ha reescrito.',
+      eventIdMismatch: 'Lote {seq}: el paquete nombra un id de evento distinto del evento que trae.',
+      signature: 'Lote {seq}: la firma Schnorr no verifica.',
+      eventRoot: 'Lote {seq}: la raíz del evento firmado no es la entregada.',
+      eventVersion: 'Lote {seq}: versión de formato inesperada ({v}).',
+      eventSeq: 'Lote {seq}: la etiqueta de secuencia no coincide.',
+      eventPrev: 'Lote {seq}: la etiqueta de raíz anterior no coincide.',
+      eventWindow: 'Lote {seq}: la ventana del evento firmado no es la entregada.',
+      eventDupTag: 'Lote {seq}: el evento firmado repite la etiqueta {tag}; dos verificadores podrían leer valores distintos.',
+      eventCreatedAt: 'Lote {seq}: el evento está fechado antes del fin de su ventana.',
+      eventPolicy: 'Lote {seq}: la etiqueta de política no coincide.',
+      countCommit: 'Lote {seq}: el compromiso de recuento publicado no se abre a {count} con la sal del paquete.',
+      countMismatch: 'Lote {seq}: se entregan {delivered} recibos y el compromiso dice {committed}.',
+      badReceipt: 'El recibo {seq} no cumple el esquema ({why}).',
+      rootMismatch: 'Lote {seq}: la raíz recalculada {recomputed} no coincide con la publicada {published}. Algún recibo de la ventana se cambió, se borró o se añadió.',
+      proofFails: 'La prueba de inclusión del recibo {seq} no verifica.',
+      tsOutOfWindow: 'Recibo {seq}: su hora cae fuera de la ventana del lote {batch}.',
+      receiptSeqJump: 'Salto en la cadena de recibos: del {from} al {to}.',
+      prevMismatch: 'Recibo {seq}: su campo de hash anterior no es el hash del recibo que le precede.',
+      noTsa: 'El lote {seq} todavía no tiene sello RFC 3161.',
+      tsaBeforeClose: 'Lote {seq}: el sello es {gap} s anterior al cierre de su ventana, lo cual es imposible.',
+      otsPending: 'Lote {seq}: el anclaje en Bitcoin sigue pendiente en el calendario.',
+      otsMissing: 'Lote {seq}: el anclaje en Bitcoin no se envió nunca.',
+      badWindowSeconds: 'El paquete declara un tamaño de ventana inválido.',
+      badRequestedRange: 'El rango solicitado debe tener dos fechas válidas, en segundos enteros y ordenadas.',
+      badCoveredRange: 'El rango entregado debe tener dos fechas válidas, en segundos enteros y ordenadas.',
+      rangeCoverage: 'El rango entregado no cubre el solicitado.',
+      rangeAlignment: 'El rango entregado no está alineado a ventanas completas.',
+      batchOutsideRange: 'Lote {seq}: su ventana queda fuera del rango entregado.',
+      badTypes: 'Lote {seq}: campos con tipos inválidos (se esperaban números). El paquete se ha editado a mano o está corrupto.',
+      windowSize: 'Lote {seq}: su ventana no mide {size} segundos.',
+      windowOverlap: 'Lote {seq}: su ventana se solapa con la anterior.',
+      gapsDeclaredMismatch: 'El paquete declara {declared} hueco(s) pero se encuentran {found} entre los lotes entregados. El paquete oculta ventanas que faltan.',
+      chainDeclaredMismatch: 'El paquete declara la cadena de lotes continua y no lo es.',
+      edgeWindows: '{n} ventana(s) en los bordes del rango no tienen lote. El paquete las declara anteriores al arranque del servicio ({before}) o aún sin cerrar ({notClosed}); eso no se puede comprobar sin conexión. Contrastar con los relays.',
+      badExpectedPubkey: 'La clave del operador escrita no es un npub ni una clave pública hex de 64 válida.',
+      mixedPubkeys: 'Los lotes están firmados por {n} claves distintas. Un agente firma con una; un cambio de clave se anuncia en el directorio de claves.',
+      pubkeyMismatch: 'La clave que firma los lotes no es la del operador que has indicado.',
+      pubkeyMatches: 'La clave firmante coincide con la del operador que has indicado.',
+      pubkeyNotChecked: 'La clave firmante no se ha contrastado con ninguna fuente externa: las firmas prueban coherencia interna, no quién firmó. Escribe arriba el npub del operador, obtenido de una fuente fiable.',
+      declaredPubkeyMismatch: 'La clave que el paquete declara como la del agente no es la que firma los lotes.',
+      proofSize: 'Recibo {seq}: su prueba de inclusión declara un árbol de {size} hojas y el lote tiene {count}.',
+      tsaUnparseable: 'Lote {seq}: el token RFC 3161 no se puede leer como TimeStampToken.',
+      tsaImprint: 'Lote {seq}: el imprint del token RFC 3161 no es el id del evento del lote. El sello es de otra cosa.',
+      tsaGenTimeMismatch: 'Lote {seq}: el paquete declara la hora del sello {declared} pero el token dice {token}.',
+      tsaSlightlyEarly: 'Lote {seq}: el sello es {gap} s anterior al cierre de su ventana; se tolera como desfase de reloj.',
+      tsaLate: 'Lote {seq}: el sello llega {gap} s después del cierre, por encima del máximo de {max} s. Posible antedatado.',
+      tsaCmsNotChecked: 'Los tokens RFC 3161 se han leído y cuadran con los eventos y con la ventana de anclaje. Su firma CMS y la cadena de certificados de la TSA se validan con DSS, no aquí.',
+      otsUnparseable: 'Lote {seq}: el fichero .ots no se puede leer.',
+      otsDigest: 'Lote {seq}: el fichero .ots no es del id de este evento.',
+      otsNotComplete: 'Lote {seq}: el paquete declara el anclaje en Bitcoin completo y el fichero .ots no tiene atestación Bitcoin.',
+      otsDeclaredPending: 'Lote {seq}: el paquete declara el anclaje en Bitcoin pendiente aunque el fichero .ots ya trae una atestación Bitcoin.',
+      otsBlockNotChecked: 'Las atestaciones Bitcoin están en los ficheros .ots. Seguirlas hasta la cabecera de un bloque exige un nodo, así que no se hace aquí.',
+    },
+  };
+
+  var lang = 'en';
+  function t(key, params) {
+    var s = (STR[lang] && STR[lang][key]) || STR.en[key] || key;
+    if (!params) return s;
+    return s.replace(/\{(\w+)\}/g, function (m, k) {
+      return params[k] === undefined || params[k] === null ? '?' : String(params[k]);
+    });
+  }
+  var $ = function (s) { return document.querySelector(s); };
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function ab(h) { return typeof h === 'string' && h.length > 16 ? h.slice(0, 10) + '…' + h.slice(-4) : String(h); }
+  function iso(sec) {
+    if (typeof sec !== 'number') return '—';
+    return new Date(sec * 1000).toISOString().replace('.000Z', 'Z').replace('T', ' ').replace('Z', '');
+  }
+  function hm(sec) {
+    if (typeof sec !== 'number') return '—';
+    return new Date(sec * 1000).toISOString().slice(11, 16);
+  }
+  function day(sec) { return new Date(sec * 1000).toISOString().slice(0, 10); }
+
+  /* ---------------- estado ---------------- */
+  var current = null; // {pkg, result, name, bytes, ms}
+
+  function applyStaticText() {
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      el.innerHTML = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('.lang button').forEach(function (b) {
+      var on = b.getAttribute('data-lang') === lang;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    document.documentElement.lang = lang;
+  }
+
+  var CHECK_TEXT = {
+    schema: ['cSchema', 'cSchemaD'],
+    chain: ['cChain', 'cChainD'],
+    inclusion: ['cInclusion', 'cInclusionD'],
+    witness: ['cWitness', 'cWitnessD'],
+    pubkey: ['cPubkey', 'cPubkeyD'],
+    count: ['cCount', 'cCountD'],
+    tsa: ['cTsa', 'cTsaD'],
+    ots: ['cOts', 'cOtsD'],
+  };
+  var ICON = { ok: '✓', warn: '!', fail: '✗' };
+
+  function findingText(f) {
+    var p = {};
+    for (var k in f.params) {
+      p[k] = k === 'first' || k === 'window' ? iso(f.params[k]) : f.params[k];
+      if ((k === 'recomputed' || k === 'published') && typeof f.params[k] === 'string') p[k] = ab(f.params[k]);
+    }
+    return t(f.key, p);
+  }
+
+  function renderVerdict() {
+    var v = $('#verdict');
+    if (!current) {
+      v.innerHTML = '<div class="verdict idle"><span class="sub">' + esc(t('idle')) + '</span></div>';
+      return;
+    }
+    var r = current.result;
+    if (r.fatal) {
+      v.innerHTML = '<div class="verdict fail"><span class="big">' + esc(t('failBig')) + '</span><span class="sub">' +
+        esc(t(r.fatal === 'notJson' ? 'fatalNotJson' : 'fatalNotPackage')) + '</span></div>';
+      return;
+    }
+    var cls = r.ok ? (r.warnings.length ? 'warn' : 'pass') : 'fail';
+    var big = r.ok ? (r.warnings.length ? t('warnBig') : t('passBig')) : t('failBig');
+    var sub = r.ok ? (r.warnings.length ? t('warnSub') : t('passSub')) : t('failSub');
+    if (!r.signaturesChecked) sub += ' ' + t('sigsSkipped');
+    v.innerHTML = '<div class="verdict ' + cls + '"><span class="big">' + esc(big) + '</span><span class="sub">' + esc(sub) + '</span></div>';
+  }
+
+  function renderChecks() {
+    var el = $('#checks');
+    if (!current || current.result.fatal) { el.innerHTML = ''; return; }
+    el.innerHTML = current.result.checks.map(function (c) {
+      var txt = CHECK_TEXT[c.id] || [c.id, ''];
+      var findings = (c.findings || []).slice(0, 12).map(function (f) {
+        var cls = f.level === 'problem' ? 'p' : f.level === 'warning' ? 'w' : 'n';
+        return '<div class="' + cls + '">' + esc(findingText(f)) + '</div>';
+      }).join('');
+      var extra = (c.findings || []).length > 12 ? '<div>… ' + ((c.findings.length - 12)) + '</div>' : '';
+      return '<li class="' + c.status + '"><span class="ic">' + ICON[c.status] + '</span><span>' +
+        '<span class="t">' + esc(t(txt[0])) + '</span>' +
+        '<span class="d">' + esc(t(txt[1])) + '</span>' +
+        (findings ? '<span class="f">' + findings + extra + '</span>' : '') +
+        '</span></li>';
+    }).join('');
+  }
+
+  function renderSummary() {
+    var el = $('#summary');
+    if (!current || current.result.fatal) { el.innerHTML = ''; return; }
+    var p = current.pkg;
+    var rows = [
+      ['format', esc(p.format)],
+      ['range', esc(iso(p.covered[0]) + ' → ' + iso(p.covered[1]))],
+      ['window', esc(String(p.windowSeconds) + ' s')],
+      ['service', p.serviceStart ? esc(iso(p.serviceStart) + ' → ' + iso(p.serviceEnd)) : '—'],
+      ['batches', esc(String(current.result.totals.batches) + ' (' + current.result.totals.empty + ' ' + t('fEmpty') + ')')],
+      ['receipts', esc(String(current.result.totals.receipts))],
+      ['pubkey', '<span class="mono">' + esc(ab(p.batches[0] && p.batches[0].event ? p.batches[0].event.pubkey : '—')) + '</span> ' + pubkeyPill()],
+    ];
+    if (p.totals && typeof p.totals.windowsBeforeService === 'number') {
+      rows.push(['before service', esc(String(p.totals.windowsBeforeService) + ' windows')]);
+      rows.push(['not closed', esc(String(p.totals.windowsNotClosed) + ' windows')]);
+    }
+    el.innerHTML = rows.map(function (r) {
+      return '<span class="k">' + esc(r[0]) + '</span><span class="v">' + r[1] + '</span>';
+    }).join('');
+  }
+
+  function pubkeyPill() {
+    var c = current && current.result.checks ? current.result.checks.filter(function (x) { return x.id === 'pubkey'; })[0] : null;
+    if (!c) return '';
+    var keys = (c.findings || []).map(function (f) { return f.key; });
+    if (keys.indexOf('mixedPubkeys') >= 0) return pill('n', t('mixed'));
+    if (keys.indexOf('pubkeyMismatch') >= 0 || keys.indexOf('declaredPubkeyMismatch') >= 0 || keys.indexOf('badExpectedPubkey') >= 0) return pill('n', t('no'));
+    if (keys.indexOf('pubkeyMatches') >= 0) return pill('y', t('matches'));
+    return pill('q', t('unchecked'));
+  }
+
+  function renderLimits() {
+    $('#limits').innerHTML = ['lPubkey', 'lTsa', 'lOts', 'lRelays', 'lCoverage'].map(function (k) {
+      return '<li>' + t(k) + '</li>';
+    }).join('');
+  }
+
+  function pill(state, label) { return '<span class="pill ' + state + '">' + esc(label) + '</span>'; }
+
+  function renderBatches() {
+    var tbl = $('#batches');
+    if (!current || current.result.fatal) { tbl.innerHTML = ''; return; }
+    var head = '<thead><tr>' +
+      ['thSeq', 'thWindow', 'thCount', 'thDelivered', 'thRoot', 'thSig', 'thRootOk', 'thTsa', 'thOts']
+        .map(function (k) { return '<th>' + esc(t(k)) + '</th>'; }).join('') + '</tr></thead>';
+    var rows = current.pkg.batches.map(function (b, i) {
+      var r = current.result.batches[i] || {};
+      var sig = r.sig === null || r.sig === undefined ? pill('q', t('none')) : pill(r.sig ? 'y' : 'n', t(r.sig ? 'yes' : 'no'));
+      var rootOk = r.rootOk === null || r.rootOk === undefined ? pill('q', t('none')) : pill(r.rootOk ? 'y' : 'n', t(r.rootOk ? 'yes' : 'no'));
+      var tsa = r.tsa === 'consistent' ? pill('q', t('consistent') + ' ' + hm(r.tsaTime))
+        : r.tsa === 'bad' ? pill('n', t('bad')) : pill('w', t('missing'));
+      var ots = r.ots === 'attested' ? pill('q', t('attested')) : r.ots === 'pending' ? pill('w', t('pending'))
+        : r.ots === 'bad' ? pill('n', t('bad')) : pill('w', t('missing'));
+      return '<tr><td class="num">' + esc(String(b.seq)) + '</td>' +
+        '<td class="num">' + esc(day(b.window[0]) + ' ' + hm(b.window[0]) + '–' + hm(b.window[1])) + '</td>' +
+        '<td class="num">' + esc(String(b.count)) + '</td><td class="num">' + esc(String(Array.isArray(b.receipts) ? b.receipts.length : 0)) + '</td>' +
+        '<td class="h">' + esc(ab(b.root)) + '</td><td>' + sig + '</td><td>' + rootOk + '</td><td>' + tsa + '</td><td>' + ots + '</td></tr>';
+    }).join('');
+    tbl.innerHTML = head + '<tbody>' + rows + '</tbody>';
+  }
+
+  var MAX_ROWS = 200;
+  function renderReceipts() {
+    var tbl = $('#receipts');
+    var more = $('#receipts-more');
+    if (!current || current.result.fatal) { tbl.innerHTML = ''; more.textContent = ''; return; }
+    var all = [];
+    current.pkg.batches.forEach(function (b) {
+      (b.receipts || []).forEach(function (r) { all.push({ r: r, batch: b.seq }); });
+    });
+    var head = '<thead><tr>' +
+      ['thRSeq', 'thTime', 'thResult', 'thBatch', 'thHash', 'thPrev']
+        .map(function (k) { return '<th>' + esc(t(k)) + '</th>'; }).join('') + '</tr></thead>';
+    var prevHash = current.pkg.precedingReceiptHash;
+    var rows = [];
+    for (var i = 0; i < all.length; i++) {
+      var r = all[i].r;
+      var h;
+      try { h = Checks.receiptHash(r); } catch (err) { h = null; }
+      var linked = prevHash === null || prevHash === undefined ? true : r.prev === prevHash;
+      if (i < MAX_ROWS) {
+        rows.push('<tr><td class="num">' + esc(r.seq) + '</td><td class="num">' + esc(day(r.ts) + ' ' + hm(r.ts)) + '</td>' +
+          '<td class="res-' + esc(r.result) + '">' + esc(r.result) + '</td><td class="num">' + esc(String(all[i].batch)) + '</td>' +
+          '<td class="h">' + esc(h ? ab(h) : '—') + '</td>' +
+          '<td>' + pill(linked ? 'y' : 'n', t(linked ? 'linkOk' : 'linkKo')) + '</td></tr>');
+      }
+      prevHash = h;
+    }
+    tbl.innerHTML = head + '<tbody>' + rows.join('') + '</tbody>';
+    more.textContent = all.length > MAX_ROWS ? t('showingFirst', { n: MAX_ROWS, total: all.length }) : '';
+  }
+
+  function renderFilebar() {
+    var el = $('#filebar');
+    if (!current) { el.innerHTML = ''; return; }
+    var kb = (current.bytes / 1024).toFixed(1);
+    el.innerHTML = '<span class="name">' + esc(current.name) + '</span><span class="sep">·</span>' +
+      '<span>' + kb + ' kB</span><span class="sep">·</span>' +
+      '<span>' + esc(t('elapsed')) + ' ' + current.ms + ' ms</span>';
+  }
+
+  function renderAll() {
+    applyStaticText();
+    renderLimits();
+    renderFilebar();
+    renderVerdict();
+    renderChecks();
+    renderSummary();
+    renderBatches();
+    renderReceipts();
+    var show = !!current && !current.result.fatal;
+    $('#detail').classList.toggle('hidden', !show);
+    $('#batches-block').classList.toggle('hidden', !show);
+    $('#receipts-block').classList.toggle('hidden', !show);
+  }
+
+  function run(pkg, name, bytes) {
+    var t0 = (globalThis.performance || Date).now();
+    var result;
+    try {
+      result = Checks.verifyPackage(pkg, { verifySignatures: $('#sigs').checked, expectedPubkey: $('#pubkey') ? $('#pubkey').value : undefined });
+    } catch (err) {
+      result = { fatal: 'notPackage', findings: [], checks: [], batches: [] };
+    }
+    var ms = Math.round(((globalThis.performance || Date).now()) - t0);
+    current = { pkg: pkg, result: result, name: name, bytes: bytes, ms: ms };
+    renderAll();
+  }
+
+  function showVerdict() {
+    var v = $('#verdict');
+    if (v && v.scrollIntoView) v.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function loadText(text, name) {
+    var pkg;
+    try { pkg = JSON.parse(text); } catch (err) {
+      current = { pkg: null, result: { fatal: 'notJson', findings: [], checks: [], batches: [] }, name: name, bytes: text.length, ms: 0 };
+      renderAll();
+      showVerdict();
+      return;
+    }
+    run(pkg, name, text.length);
+    showVerdict();
+  }
+
+  function loadFile(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () { loadText(String(reader.result), file.name); };
+    reader.onerror = function () {
+      current = { pkg: null, result: { fatal: 'notJson', findings: [], checks: [], batches: [] }, name: file.name, bytes: 0, ms: 0 };
+      renderAll();
+    };
+    reader.readAsText(file);
+  }
+
+  /* ---------------- eventos ---------------- */
+  var drop = $('#drop');
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+  drop.addEventListener('click', function (e) { if (e.target === drop) $('#file').click(); });
+  drop.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#file').click(); }
+  });
+  $('#pick').addEventListener('click', function () { $('#file').click(); });
+  $('#file').addEventListener('change', function (e) { loadFile(e.target.files && e.target.files[0]); });
+  $('#example').addEventListener('click', function () {
+    var ex = globalThis.PRECINTUM_EXAMPLE;
+    if (ex) {
+      run(JSON.parse(JSON.stringify(ex)), t('exampleName'), JSON.stringify(ex).length);
+      showVerdict();
+    }
+  });
+  $('#sigs').addEventListener('change', function () {
+    if (current && current.pkg) run(current.pkg, current.name, current.bytes);
+  });
+  $('#pubkey').addEventListener('change', function () {
+    if (current && current.pkg) run(current.pkg, current.name, current.bytes);
+  });
+  document.querySelectorAll('.lang button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      lang = b.getAttribute('data-lang');
+      try { localStorage.setItem('precintum-verify-lang', lang); } catch (err) { /* sin almacenamiento */ }
+      renderAll();
+    });
+  });
+
+  /* ---------------- arranque ---------------- */
+  try {
+    var saved = localStorage.getItem('precintum-verify-lang');
+    if (saved === 'es' || saved === 'en') lang = saved;
+  } catch (err) { /* sin almacenamiento */ }
+  // La página abre vacía; el ejemplo se carga al pulsar su botón.
+  renderAll();
+  void Crypto;
+})();
+</script>
+</body>
+</html>

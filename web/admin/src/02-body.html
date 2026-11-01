@@ -1,0 +1,53 @@
+<div class="wrap">
+<header class="top">
+  <div>
+    <div class="tag" data-i18n="kicker">Precintum · evidence agent</div>
+    <h1 data-i18n="title">Operations panel</h1>
+  </div>
+  <div class="hactions">
+    <span class="ro" data-i18n="readonly">read-only</span>
+    <span class="stamp" id="stamp"></span>
+    <button class="btn" id="refresh" type="button" data-i18n="refresh">Refresh</button>
+    <span class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="es">ES</button>
+    </span>
+  </div>
+</header>
+
+<div id="error" class="err" hidden></div>
+<div id="banner"></div>
+<div class="tiles" id="tiles"></div>
+
+<div class="cols">
+  <div class="card">
+    <h2 data-i18n="witnessTitle">Witnesses · last published batch</h2>
+    <div class="body flush"><div class="rows" id="relays"></div></div>
+    <div class="body"><p class="note" data-i18n="witnessNote">What each relay answered when the last batch was published. This is the operator's own telemetry: it is not third-party evidence. What counts as evidence is that the event is still there, which <code>witness check</code> asks.</p></div>
+  </div>
+  <div class="card">
+    <h2 data-i18n="alertsTitle">Alerts</h2>
+    <div class="body flush"><div class="rows" id="alerts"></div></div>
+    <div class="body"><p class="note" data-i18n="alertsNote">An alert nobody reads protects nothing. A lost witness or a deletion request is a first-level event: it means someone must look.</p></div>
+  </div>
+</div>
+
+<div class="cols">
+  <div class="card">
+    <h2 data-i18n="batchesTitle">Recent batches</h2>
+    <div class="body flush tablewrap"><table id="batches"></table></div>
+  </div>
+  <div class="card">
+    <h2 data-i18n="configTitle">Configuration in force</h2>
+    <div class="body"><div class="kv" id="config"></div>
+      <p class="note" data-i18n="configNote">Shown so it can be audited, not edited. Changing configuration is the real attack surface, so it is changed in the deployment and never from a browser. Secrets are never sent here: of the private key, the deduplication key and the TSA password, only whether they are set.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p><b data-i18n="fReadT">Read-only by design.</b> <span data-i18n="fRead">This panel serves only GET and HEAD requests and has no route that writes to the database. Exporting and closing batches are command-line operations. Operational key rotation is still planned.</span></p>
+  <p><b data-i18n="fAuthT">No authentication.</b> <span data-i18n="fAuth">Whoever can open this port sees everything on this page. It binds to localhost by default; publishing it elsewhere requires putting a reverse proxy with authentication in front.</span></p>
+  <p><b data-i18n="fMetricsT">Metrics.</b> <span data-i18n="fMetrics">The same data is exposed for Prometheus at <code>/metrics</code>, which many teams will prefer over a page.</span></p>
+</footer>
+</div>

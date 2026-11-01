@@ -1,0 +1,179 @@
+<div class="wrap">
+<header class="masthead">
+  <div>
+    <div class="eyebrow">Precintum · caso de uso interactivo</div>
+    <h1>Nora entra en Umbral</h1>
+    <p class="lede">Una persona demuestra con su cartera europea que es mayor de edad y la plataforma la deja pasar. En este caso simulado, Precintum conserva evidencia de la verificación registrada, sin identificadores personales, para que seis meses después una inspectora pueda comprobar su integridad y coherencia.</p>
+    <p class="fictos">Nora y Umbral son ficticios. Los hashes, la cadena, el árbol y el id del evento se calculan de verdad en tu navegador; la firma, el sello de la TSA y la atestación de Bitcoin están simulados.</p>
+  </div>
+  <div class="howto">
+    <b>Cómo se usa.</b>
+    <ul>
+      <li>Avanza con <span class="kbd">→</span> / <span class="kbd">←</span> o con los botones; <span class="kbd">espacio</span> reproduce solo.</li>
+      <li>Arriba, los personajes y el mensaje que viaja. Debajo, quién sabe qué de Nora en cada momento.</li>
+      <li>A la izquierda, el guion de cada paso: qué pasa, por qué y qué no pasa. A la derecha, los datos reales que Precintum va produciendo.</li>
+      <li>El último capítulo es un laboratorio: intenta manipular el registro y mira qué se detecta.</li>
+    </ul>
+  </div>
+</header>
+
+<nav class="chapters" id="chapters" aria-label="Capítulos"></nav>
+
+<section class="stage" aria-label="Escenario">
+  <div class="stage-inner">
+    <svg id="stage-svg" viewBox="0 0 1240 225" role="img" aria-label="Personajes: emisor, Nora, Umbral, Precintum, relays, TSA, Bitcoin e inspectora">
+      <line class="ground" x1="20" y1="205" x2="1220" y2="205"/>
+      <line id="lane" x1="0" y1="45" x2="0" y2="45"/>
+      <path id="lane-arrow" d="M0 -6 L10 0 L0 6 Z"/>
+
+      <g class="actor" data-id="emisor" style="--x:85px;--tint:var(--c-emisor)">
+        <path class="tint" d="M-42 132 L0 106 L42 132 Z"/>
+        <rect class="tint" x="-38" y="132" width="76" height="8"/>
+        <rect class="col" x="-31" y="142" width="11" height="50"/>
+        <rect class="col" x="-5.5" y="142" width="11" height="50"/>
+        <rect class="col" x="20" y="142" width="11" height="50"/>
+        <rect class="tint" x="-40" y="194" width="80" height="11" rx="2"/>
+        <circle class="badge" cx="0" cy="122" r="7"/>
+        <path class="badge-check" d="M-3.5 122 L-1 124.5 L3.5 119.5"/>
+      </g>
+
+      <g class="actor" data-id="nora" style="--x:238px;--tint:var(--c-nora)">
+        <circle class="skin" cx="0" cy="106" r="17"/>
+        <path class="hair" d="M-17 104 a17 17 0 0 1 34 0 v-2 q-6 -8 -17 -8 q-11 0 -17 8z"/>
+        <rect class="tint" x="-22" y="125" width="44" height="52" rx="12"/>
+        <rect class="dark" x="-14" y="175" width="10" height="30" rx="4"/>
+        <rect class="dark" x="4" y="175" width="10" height="30" rx="4"/>
+        <rect class="phone" x="21" y="132" width="16" height="28" rx="3"/>
+        <rect class="screen" x="24" y="136" width="10" height="17"/>
+        <g class="cred" id="cred">
+          <rect x="-46" y="120" width="28" height="18" rx="3"/>
+          <text x="-32" y="133" style="font:700 10px var(--font-mono);fill:var(--seal-ink);text-anchor:middle">18+</text>
+        </g>
+      </g>
+
+      <g class="actor" data-id="umbral" style="--x:391px;--tint:var(--c-umbral)">
+        <rect class="wall" x="-40" y="122" width="80" height="83" rx="4"/>
+        <path class="tint" d="M-46 122 h92 l-6 16 h-80z"/>
+        <rect class="door" x="-13" y="163" width="26" height="42" rx="3"/>
+        <rect class="sign" x="-30" y="140" width="60" height="18" rx="4"/>
+        <text class="sign-text" x="0" y="154">+18</text>
+      </g>
+
+      <g class="actor" data-id="precintum" style="--x:544px;--tint:var(--c-precintum)">
+        <line class="stroke" x1="0" y1="98" x2="0" y2="112"/>
+        <circle class="tint" cx="0" cy="95" r="4.5"/>
+        <rect class="tint" x="-27" y="112" width="54" height="58" rx="12"/>
+        <circle class="eye" cx="-9" cy="134" r="5.5"/><circle class="pupil" cx="-8" cy="135" r="2.4"/>
+        <circle class="eye" cx="9" cy="134" r="5.5"/><circle class="pupil" cx="10" cy="135" r="2.4"/>
+        <rect class="mouth" x="-9" y="150" width="18" height="4" rx="2"/>
+        <rect class="dark" x="-22" y="172" width="44" height="33" rx="6"/>
+        <rect class="paper" x="26" y="128" width="26" height="34" rx="2"/>
+        <line class="ink-line" x1="31" y1="137" x2="47" y2="137"/>
+        <line class="ink-line" x1="31" y1="144" x2="47" y2="144"/>
+        <line class="ink-line" x1="31" y1="151" x2="41" y2="151"/>
+      </g>
+
+      <g class="actor" data-id="relays" style="--x:697px;--tint:var(--c-relays)">
+        <path class="tower" d="M-45 205 L-36 132 L-27 205 Z"/>
+        <path class="tower" d="M-9 205 L0 124 L9 205 Z"/>
+        <path class="tower" d="M27 205 L36 132 L45 205 Z"/>
+        <path class="wave" d="M-12 116 a12 12 0 0 1 24 0"/>
+        <path class="wave" d="M-20 110 a20 20 0 0 1 40 0"/>
+        <circle class="dot idle" data-relay="damus" cx="-36" cy="129" r="5.5"/>
+        <circle class="dot idle" data-relay="nos" cx="0" cy="121" r="5.5"/>
+        <circle class="dot idle" data-relay="primal" cx="36" cy="129" r="5.5"/>
+      </g>
+
+      <g class="actor" data-id="tsa" style="--x:850px;--tint:var(--c-tsa)">
+        <g class="seal-g" id="seal-g">
+          <rect class="handle" x="-9" y="104" width="18" height="30" rx="4"/>
+          <rect class="dark" x="-30" y="132" width="60" height="15" rx="5"/>
+          <circle class="seal" cx="0" cy="176" r="29"/>
+          <circle class="seal-inner" cx="0" cy="176" r="20"/>
+          <line class="hand" x1="0" y1="176" x2="0" y2="163"/>
+          <line class="hand" x1="0" y1="176" x2="9" y2="176"/>
+        </g>
+      </g>
+
+      <g class="actor" data-id="btc" style="--x:1003px;--tint:var(--c-btc)">
+        <line class="link" x1="-18" y1="172" x2="-12" y2="172"/>
+        <line class="link" x1="14" y1="172" x2="20" y2="172"/>
+        <rect class="block" x="-48" y="157" width="30" height="30" rx="4"/>
+        <rect class="block" x="-14" y="157" width="30" height="30" rx="4"/>
+        <rect class="block hot" id="block-hot" x="20" y="157" width="30" height="30" rx="4"/>
+        <text class="btc-glyph" x="35" y="178">₿</text>
+        <text x="-33" y="178" style="font:11px var(--font-mono);fill:var(--ink-3);text-anchor:middle">N-2</text>
+        <text x="1" y="178" style="font:11px var(--font-mono);fill:var(--ink-3);text-anchor:middle">N-1</text>
+      </g>
+
+      <g class="actor" data-id="aud" style="--x:1156px;--tint:var(--c-aud)">
+        <circle class="skin" cx="0" cy="106" r="17"/>
+        <path class="hair" d="M-17 106 a17 17 0 0 1 34 0 v-3 q-4 -10 -17 -10 q-13 0 -17 10z"/>
+        <rect class="tint" x="-22" y="125" width="44" height="52" rx="12"/>
+        <rect class="dark" x="-14" y="175" width="10" height="30" rx="4"/>
+        <rect class="dark" x="4" y="175" width="10" height="30" rx="4"/>
+        <rect class="paper" x="-46" y="140" width="22" height="28" rx="2"/>
+        <line class="ink-line" x1="-42" y1="148" x2="-28" y2="148"/>
+        <line class="ink-line" x1="-42" y1="155" x2="-28" y2="155"/>
+        <circle class="glass" cx="30" cy="150" r="11"/>
+        <circle class="lens" cx="30" cy="150" r="11"/>
+        <line class="stroke" x1="38" y1="158" x2="47" y2="169"/>
+      </g>
+
+      <g id="packet" style="--px:238px">
+        <rect id="packet-rect" x="-70" y="28" width="140" height="30" rx="15"/>
+        <text id="packet-text" x="0" y="48">…</text>
+      </g>
+    </svg>
+    <div class="cast" id="cast"></div>
+  </div>
+</section>
+
+<div class="priv-title">Quién sabe qué de Nora en este momento</div>
+<div class="priv" id="priv"></div>
+
+<div class="controls">
+  <button class="btn" id="btn-prev">← Anterior</button>
+  <button class="btn primary" id="btn-next">Siguiente →</button>
+  <button class="btn" id="btn-play">▶ Reproducir</button>
+  <div class="progress"><div class="bar"><i id="bar"></i></div><span class="counter" id="counter"></span></div>
+  <label class="toggle"><input type="checkbox" id="tech-toggle" checked> Mostrar datos técnicos</label>
+</div>
+
+<div class="cols">
+  <article class="card script" id="script" aria-live="polite"></article>
+  <aside class="card hood" id="hood"></aside>
+</div>
+
+<section class="card lab" id="lab" hidden>
+  <h2>Laboratorio: ¿y si alguien hace trampas?</h2>
+  <p class="intro">Elige un sabotaje. La página altera los datos, vuelve a calcular los hashes y pasa la lista de comprobaciones de la inspectora. Verás qué se detecta, qué no, y por qué.</p>
+  <div class="scens" id="scens"></div>
+  <div id="lab-result" role="status" aria-live="polite"></div>
+</section>
+
+<section class="card glossary">
+  <h2>Glosario mínimo</h2>
+  <p class="gl-note">En el orden en que aparecen en la historia, de la cartera de Nora al paquete que revisa la inspectora.</p>
+  <dl>
+    <div><dt>Cartera EUDI</dt><dd>Cartera de identidad digital europea donde la persona guarda sus credenciales y decide qué atributos comparte. En este caso está simulada: Precintum no incluye una aplicación de cartera.</dd></div>
+    <div><dt>Atestación de edad</dt><dd>Credencial firmada por un emisor de confianza que dice solo "mayor de 18", sin fecha de nacimiento. En el blueprint europeo de verificación de edad, la "proof of age".</dd></div>
+    <div><dt>Relying party / verifier</dt><dd>La plataforma que necesita la prueba (Umbral) y el software con el que la valida. Precintum lee de ese software.</dd></div>
+    <div><dt>Recibo</dt><dd>La anotación de Precintum por cada verificación registrada: 8 campos, sin identificadores personales.</dd></div>
+    <div><dt>Hash (huella)</dt><dd>Resumen de 32 bytes de un contenido. Si cambia un carácter, cambia la huella. No se puede deshacer.</dd></div>
+    <div><dt>Cadena de hashes</dt><dd>Cada recibo lleva la huella del anterior. Cambiar, quitar o insertar uno rompe los enlaces. Es media cadena de bloques: le falta el consenso.</dd></div>
+    <div><dt>Raíz Merkle</dt><dd>Una sola huella que resume todos los recibos de una hora. Permite probar que un recibo estaba dentro sin publicar los demás.</dd></div>
+    <div><dt>Relay Nostr</dt><dd>Servidor público que guarda y sirve eventos firmados. Aquí, testigo independiente de que una raíz existía. No es un notario ni un reloj.</dd></div>
+    <div><dt>TSA / sello de tiempo</dt><dd>Tercero que firma "este hash existía a esta hora" (RFC 3161). Si es un prestador cualificado, el sello tiene presunción legal en la UE.</dd></div>
+    <div><dt>OpenTimestamps</dt><dd>Forma de anclar un hash en Bitcoin sin coste: prueba matemática de que existía antes de un bloque. No sustituye al sello; lo acompaña.</dd></div>
+    <div><dt>precintum-verify</dt><dd>Herramienta de línea de comandos prevista para comprobar el paquete sin acceso a los sistemas de Umbral. El prototipo dispone del verificador independiente en <code>web/verificador.html</code>.</dd></div>
+    <div><dt>QTSP</dt><dd>Prestador cualificado de servicios de confianza, en la lista de confianza europea. La TSA de producción de Precintum será la de un QTSP de la lista de confianza.</dd></div>
+  </dl>
+</section>
+
+<footer>
+  <p><b>Estado del proyecto.</b> Precintum es un prototipo con identidad, eventos, relays, recibos y cadena, relay propio, testigos con quórum, lotes Merkle y clientes RFC 3161 y OpenTimestamps. También existen la ingesta <code>POST /receipts</code> con cuarentena, el proceso <code>precintum run</code> (planificador, panel y <code>/health</code>), la exportación por rango de fechas y el verificador independiente en el navegador. El formato dispone de vectores y el modelo de amenazas documenta el estado de las mitigaciones. Siguen pendientes el adaptador del verifier EUDI, el directorio de claves operativo, la CLI de verificación, el contenedor ASiC-E con Evidence Record RFC 4998, la validación CMS del sello con DSS y el empaquetado en contenedores. Autenticar las anclas de tiempo requiere validación externa.</p>
+  <p><b>Qué es real en esta página.</b> Los hashes de los recibos, la cadena, el árbol Merkle, el compromiso de recuento y el id del evento se calculan con SHA-256 en tu navegador, con los mismos dominios y formatos que usa Precintum. La firma Schnorr, el token de la TSA y la atestación de Bitcoin están simulados. Las horas son de Madrid.</p>
+  <p><b>Aviso.</b> Lo que aquí se dice sobre eIDAS, presunción legal, protección de datos o valor probatorio es información orientativa, no asesoramiento jurídico: debe revisarlo un profesional cualificado.</p>
+</footer>
+</div>

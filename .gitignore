@@ -1,0 +1,32 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+data/
+
+# Relay privado (generado por `pnpm precintum relay init`; contiene solo la pubkey del agente)
+deploy/relay/config.toml
+deploy/relay/docker-compose.yml
+
+# Salida de `pnpm demo`
+demo-package*.json
+.npmrc
+.vscode/
+.idea/
+.history/
+*.code-workspace
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.db
+*.sqlite
+*.sqlite3
+*.zip

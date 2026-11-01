@@ -1,0 +1,68 @@
+<div class="wrap">
+<header class="top">
+  <div>
+    <div class="tag" data-i18n="kicker">Precintum · independent verifier</div>
+    <h1 data-i18n="title">Evidence package verifier</h1>
+    <p data-i18n="lede">Drop an evidence package exported with <code>precintum export</code> and this page recomputes every hash, root, inclusion proof and signature from scratch, without using the operator's software.</p>
+  </div>
+  <div class="hactions">
+    <span class="privacy" data-i18n="privacy">Nothing leaves your browser. There is no server: the file is read and verified locally.</span>
+    <span class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="es">ES</button>
+    </span>
+  </div>
+</header>
+
+<div class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-help">
+  <h2 data-i18n="dropTitle">Drop the package here</h2>
+  <p id="drop-help" data-i18n="dropHelp">A <code>.json</code> file produced by <code>precintum export --desde … --hasta …</code>. Nothing is uploaded.</p>
+  <div class="btns">
+    <button class="btn primary" id="pick" type="button" data-i18n="pick">Choose file…</button>
+    <button class="btn" id="example" type="button" data-i18n="loadExample">Load example package</button>
+  </div>
+  <div class="opts">
+    <label><input type="checkbox" id="sigs" checked> <span data-i18n="optSigs">Verify Schnorr signatures (slower on large packages)</span></label>
+    <label class="pk"><span data-i18n="optPubkey">Operator public key (npub or hex), from a source you trust</span><input type="text" id="pubkey" placeholder="npub1…" spellcheck="false" autocomplete="off" autocapitalize="off"></label>
+  </div>
+  <input type="file" id="file" accept=".json,application/json" class="hidden">
+</div>
+
+<div class="filebar" id="filebar"></div>
+<div id="verdict" role="status" aria-live="polite"></div>
+
+<div class="cols" id="detail">
+  <div class="card">
+    <h3 data-i18n="checksTitle">Checks</h3>
+    <ul class="checks" id="checks"></ul>
+  </div>
+  <div>
+    <div class="card">
+      <h3 data-i18n="summaryTitle">Package</h3>
+      <div class="kv" id="summary"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 data-i18n="limitsTitle">What this tool cannot verify</h3>
+      <ul class="limits" id="limits"></ul>
+    </div>
+  </div>
+</div>
+
+<section class="block" id="batches-block">
+  <h2 data-i18n="batchesTitle">Batches</h2>
+  <p class="lede" data-i18n="batchesLede">One row per hourly window. An empty batch is a heartbeat: it records a window with no registered verifications.</p>
+  <div class="tablewrap"><table id="batches"></table></div>
+</section>
+
+<section class="block" id="receipts-block">
+  <h2 data-i18n="receiptsTitle">Receipts</h2>
+  <p class="lede" data-i18n="receiptsLede">Eight fields each, none of which identifies a person. The hash is recomputed here from the fields.</p>
+  <div class="tablewrap"><table id="receipts"></table><div class="more" id="receipts-more"></div></div>
+</section>
+
+<footer>
+  <p><b data-i18n="fLocalT">Local verification.</b> <span data-i18n="fLocal">This page contains its own SHA-256 and BIP-340 Schnorr implementations, in plain JavaScript with no external libraries, so that verifying does not require trusting a download, a server or the operator. The code is part of the Precintum repository and a test in that repository cross-checks it against the server implementation on every run.</span></p>
+  <p><b data-i18n="fScopeT">Scope.</b> <span data-i18n="fScope">These results concern the integrity and consistency of the delivered records. Authenticating the TSA timestamp and the Bitcoin anchor requires external validation. The checks do not prove that the recorded events happened or that all events were recorded; that requires independent checks and the operator’s responsibility.</span></p>
+  <p><b data-i18n="fLegalT">Notice.</b> <span data-i18n="fLegal">Statements about eIDAS, legal presumption or evidential value are informational, not legal advice, and should be reviewed by a qualified professional.</span></p>
+</footer>
+</div>

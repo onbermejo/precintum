@@ -1,0 +1,10 @@
+# Ajustes de pnpm (pnpm >= 11 ya no lee ajustes de .npmrc, solo auth y registry).
+
+# Los scripts de package.json usan sintaxis POSIX (`VAR=x cmd`, `&&`). Con esto pnpm los
+# ejecuta con su propia shell en JS y funcionan igual en Windows (cmd/PowerShell) que en Linux.
+shellEmulator: true
+
+# Hace que `engines.node` de package.json sea una guarda real: instalar con un Node
+# inferior falla en vez de avisar. Sin esto, `node src/cli/index.ts` con Node 22 rompería
+# por el type stripping y el fallo aparecería tarde y en otro sitio.
+engineStrict: true
