@@ -1,6 +1,29 @@
 # Precintum
 
-**A tamper-evident record of age verifications without personal identifiers in the evidence.**
+**If a regulator asks how many age checks you ran last Tuesday, can you prove it without keeping
+anyone's data?**
+
+Precintum keeps a tamper-evident record of age verifications. Anyone can check it in a browser, and the
+evidence holds no personal identifiers.
+
+![The browser verifier passes the example package, then fails on the same package with one receipt edited from under_18 to over_18](docs/img/verifier-tamper.gif)
+
+**Try it in ten seconds:** open the [browser verifier](https://onbermejo.github.io/precintum/web/verificador.html)
+and press **Load example package**. Then download
+[`examples/package-tampered.json`](examples/package-tampered.json), the same package with one receipt
+edited, and drop it on the page. Nothing leaves your browser.
+
+**Status:** prototype. Working code and tests; no deployments or users yet.
+
+**Maintainer:** [Óscar Núñez (onbermejo)](https://github.com/onbermejo).
+
+**Browser demos:** [evidence verifier](https://onbermejo.github.io/precintum/web/verificador.html),
+[interactive walkthrough](https://onbermejo.github.io/precintum/web/caso-nora.html) (Spanish),
+[operations panel demo](https://onbermejo.github.io/precintum/web/panel-demo.html).
+
+**Start here: [REVIEWERS.md](REVIEWERS.md)** for a short browser walkthrough and local checks with Node.
+
+## How it works
 
 Each verification leaves a receipt of eight fields: a random nonce, the hashes of the policy and of the
 verifier configuration, the result and the minute. Receipts are hash-chained. Hourly batches put a
@@ -9,16 +32,6 @@ for TSA time-stamping (RFC 3161) and Bitcoin anchoring (OpenTimestamps). Anyone 
 recompute the delivered evidence's hashes, commitments and signatures. Authenticating its time
 evidence requires external validation. It proves the integrity of what the system recorded, not that
 the verifications occurred or that everything was recorded.
-
-**Status:** prototype. Working code and tests; no deployments or users yet.
-
-**Maintainer:** [onbermejo](https://github.com/onbermejo).
-
-**Browser demos:** [evidence verifier](https://onbermejo.github.io/precintum/web/verificador.html),
-[interactive walkthrough](https://onbermejo.github.io/precintum/web/caso-nora.html),
-[operations panel demo](https://onbermejo.github.io/precintum/web/panel-demo.html).
-
-**Start here: [REVIEWERS.md](REVIEWERS.md)** for a short browser walkthrough and local checks with Node.
 
 ## Requirements
 
